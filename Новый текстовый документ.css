@@ -1,0 +1,191 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300&family=Titillium+Web:wght@200;300;400;600;700;900&display=swap');
+* {
+    margin: 0;
+    padding: 0;
+}
+.window {
+    max-width: 1280px;
+    margin: 0 auto;
+    position: relative;
+}
+.header {
+    background-image: url("img/first-bg.jpg.png");
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+.navbar {
+    display: flex;
+    justify-content: space-around;
+    padding-top: 45px;
+    padding-bottom: 215px;
+}
+.navbar .navmenu ul {
+    display: flex;
+    justify-content: space-evenly;
+    line-height: 32px;
+}
+.navbar .navmenu ul li {
+    list-style-type: none;
+    display: inline-block;
+    margin-left: 30px;
+    text-transform: uppercase;
+}
+.navbar .navmenu ul li a {
+    text-decoration: none;
+    color: white;
+    font-size: 18px;
+    font-family: 'Open Sans', sans-serif;
+}
+.headerContent {
+    text-align: center;
+    color: white;
+    font-family: 'Titillium Web', sans-serif;
+    text-transform: uppercase;
+}
+.headerContent h1 {
+    font-size: 40px;
+    padding-bottom: 50px;
+}
+.headerContent h2 {
+    font-size: 75px;
+    padding-bottom: 60px;
+}
+.headerContent a {
+    width: 240px;
+    text-decoration: none;
+    color: #484543;
+    background-color: yellow;
+    padding: 25px 0;
+    display: inline-block;
+    border-radius: 5px;
+    margin-bottom: 160px;
+    font-weight: 700;
+}
+.servicesText {
+    padding-top: 120px;
+    text-align: center;
+    color: black;
+    font-family: 'Titillium Web', sans-serif;
+}
+.servicesText h1 {
+    font-size: 40px;
+}
+.servicesText p {
+    font-size: 16px;
+    color: #777777;
+    padding-bottom: 80px;
+    word-spacing: 3px;
+}
+.servicesContent {
+    display: flex;
+    justify-content: space-between;
+}
+.servicesContent .servicesContentBox {
+    margin: 0 20px;
+    text-align: center;
+    width: 290px;
+    font-family: 'Titillium Web', sans-serif;
+    padding-bottom: 120px;
+}
+.servicesContent .servicesContentBox img {
+    padding-bottom: 25px;
+}
+.servicesContent .servicesContentBox h4 {
+    font-size: 18px;
+}
+.servicesContent .servicesContentBox p {
+    font-size: 14px;
+}
+.portfolio {
+    background-image: url(img/Background.png);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+.portfolioText {
+    padding-top: 120px;
+    text-align: center;
+    color: black;
+    font-family: 'Titillium Web', sans-serif;
+}
+.portfolioText h1 {
+    font-size: 40px;
+}
+.portfolioText p {
+    font-size: 16px;
+    color: #777777;
+    padding-bottom: 80px;
+    word-spacing: 3px;
+}
+.portfolioContent {
+    display: flex;
+    justify-content: space-between;
+}
+.portfolioContent .portfolioContentBox {
+    text-align: center;
+    width: 31%;
+    font-family: 'Titillium Web', sans-serif;
+    padding-bottom: 130px;
+}
+.portfolioContent .portfolioContentBox img {
+    padding-bottom: 25px;
+    width: 100%;
+}
+.aboutUsText {
+    padding-top: 120px;
+    text-align: center;
+    color: black;
+    font-family: 'Titillium Web', sans-serif;
+}
+.aboutUsText h1 {
+    font-size: 40px;
+}
+.aboutUsText p {
+    font-size: 16px;
+    color: #777777;
+    padding-bottom: 80px;
+    word-spacing: 3px;
+}
+.aboutUsContent {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+}
+.aboutUsContent .aboutUsContentBox {
+    display: flex;
+    justify-content: right;
+    width: 723px;
+    margin-right: auto;
+    text-align: right;
+    font-family: 'Titillium Web', sans-serif;
+}
+.aboutUsContent .aboutUsContentBox.two {
+    margin-left: auto;
+    margin-right: 0;
+    text-align: left;
+    justify-content: left;
+}
+.aboutUsContent .aboutUsContentBox .aboutUsContentBoxText {
+    padding: 0 40px;
+}
+.aboutUsContent .aboutUsContentBox .aboutUsContentBoxText h4 {
+    font-size: 18px;
+    text-transform: uppercase;
+}
+.aboutUsContent .aboutUsContentBox .aboutUsContentBoxText h5 {
+    font-size: 16px;
+    padding-bottom: 10px;
+}
+.aboutUsContent .aboutUsContentBox .aboutUsContentBoxText p {
+    width: 285px;
+    font-size: 14px;
+    line-height: 180%;
+}
+.footer p {
+    display: block;
+    text-align: center;
+    color: #555555;
+    padding: 60px 0 ;
+}
