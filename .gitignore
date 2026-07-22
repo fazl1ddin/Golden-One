@@ -1,0 +1,7 @@
+node_modules/
+dist/
+*.log
+# backend local db & secrets
+api/dev.db
+.env
+**/.env

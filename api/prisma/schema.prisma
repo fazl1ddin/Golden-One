@@ -1,0 +1,100 @@
+// Golden One — Prisma schema (SQLite)
+// Credit organization system for remotely locking financed iPhones via MDM.
+//
+// NOTE: SQLite does not support native enums, so enum-typed columns are stored
+// as String. The allowed values are enforced in code via TypeScript union types
+// and Zod schemas (see src/domain.ts and src/schemas.ts). Switching the
+// datasource to PostgreSQL later can promote these back to real enums.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id   String @id @default(cuid())
+  name String
+  // Role: POS_OPERATOR | COLLECTIONS | ADMIN
+  role String @default("COLLECTIONS")
+
+  createdAt DateTime @default(now())
+}
+
+model Customer {
+  id       String @id @default(cuid())
+  fullName String
+  phone    String
+  doc      String
+
+  contracts LoanContract[]
+  devices   Device[]
+
+  createdAt DateTime @default(now())
+}
+
+model LoanContract {
+  id              String    @id @default(cuid())
+  number          String    @unique
+  customerId      String
+  amount          Int
+  monthly         Int
+  paid            Int       @default(0)
+  nextPaymentDate DateTime?
+  daysOverdue     Int       @default(0)
+  // ContractStatus: ACTIVE | OVERDUE | PAID | DEFAULTED
+  status          String    @default("ACTIVE")
+
+  customer Customer @relation(fields: [customerId], references: [id])
+  devices  Device[]
+
+  createdAt DateTime @default(now())
+}
+
+model Device {
+  id         String  @id @default(cuid())
+  serial     String  @unique
+  imei       String  @unique
+  model      String
+  ios        String
+  supervised Boolean @default(true)
+  // EnrollmentStatus: ENROLLED | PENDING | RELEASED
+  enrollmentStatus String @default("ENROLLED")
+  // LockStatus: LOCKED | UNLOCKED
+  lockStatus       String @default("UNLOCKED")
+  customerId String
+  contractId String
+
+  customer Customer     @relation(fields: [customerId], references: [id])
+  contract LoanContract @relation(fields: [contractId], references: [id])
+  commands MdmCommand[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MdmCommand {
+  id       String @id @default(cuid())
+  deviceId String
+  // CommandType: LOCK | UNLOCK | LOCATE | SOUND | REMOVE_MGMT
+  type     String
+  // CommandStatus: PENDING | ACKNOWLEDGED | ERROR
+  status   String   @default("PENDING")
+  payload  String? // JSON-encoded string
+  createdAt DateTime @default(now())
+
+  device Device @relation(fields: [deviceId], references: [id])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorName  String
+  action     String
+  deviceId   String?
+  contractId String?
+  reason     String?
+  createdAt  DateTime @default(now())
+}

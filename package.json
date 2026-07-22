@@ -1,0 +1,7 @@
+{
+  "name": "golden-one",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Golden One — device financing lock (admin panel + MDM abstraction + backend)",
+  "workspaces": ["packages/*", "web", "api"]
+}
