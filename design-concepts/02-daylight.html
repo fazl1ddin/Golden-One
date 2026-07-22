@@ -1,0 +1,100 @@
+<!-- @dsCard group="Концепты приложения" -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Daylight — светлый / изумруд</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  .v{width:1280px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    background:#f5f6f8;color:#161b22;min-height:820px;
+    --ink:#122b2b;--em:#0f7a5a;--emsoft:#e2f2ec;--card:#ffffff;--bd:#e6e9ef;--muted:#5c6673;--faint:#9aa2b1;
+    --green:#0f9d63;--amber:#c9861a;--red:#d64550;--blue:#3b6fd4}
+  .nav{display:flex;align-items:center;gap:26px;padding:0 32px;height:64px;background:#fff;border-bottom:1px solid var(--bd)}
+  .brand{display:flex;align-items:center;gap:11px;padding-right:8px}
+  .mk{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--ink),#0f4a3f);
+    display:grid;place-items:center;color:#e7c979;font-weight:800;font-size:16px}
+  .bn{font-weight:750;font-size:16px;letter-spacing:-.2px}
+  .nav a{font-size:13.5px;font-weight:600;color:var(--muted);padding:6px 0;position:relative}
+  .nav a.on{color:var(--ink)}
+  .nav a.on::after{content:"";position:absolute;left:0;right:0;bottom:-22px;height:3px;border-radius:3px;background:var(--em)}
+  .right{margin-left:auto;display:flex;align-items:center;gap:14px}
+  .seg{display:flex;border:1px solid var(--bd);border-radius:9px;overflow:hidden}
+  .seg span{padding:6px 12px;font-size:12px;font-weight:700;color:var(--faint)}
+  .seg span.on{background:var(--ink);color:#fff}
+  .who{display:flex;align-items:center;gap:9px}
+  .av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#0f7a5a,#0c5f47);display:grid;place-items:center;color:#fff;font-weight:700;font-size:12px}
+  .head{padding:26px 32px 8px}
+  .h1{font-size:24px;font-weight:750;letter-spacing:-.5px}.hs{font-size:13.5px;color:var(--muted);margin-top:3px}
+  .ct{padding:14px 32px 32px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+  .kpi{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:20px;box-shadow:0 1px 2px rgba(20,25,40,.04)}
+  .kt{display:flex;align-items:center;justify-content:space-between}
+  .ki{width:36px;height:36px;border-radius:10px;display:grid;place-items:center}
+  .kl{font-size:12.5px;color:var(--muted);margin-top:16px}.kv{font-size:30px;font-weight:750;letter-spacing:-1px;margin-top:3px}
+  .pill{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:20px}
+  .grid{display:grid;grid-template-columns:1.55fr 1fr;gap:16px}
+  .panel{background:var(--card);border:1px solid var(--bd);border-radius:16px;overflow:hidden;box-shadow:0 1px 2px rgba(20,25,40,.04)}
+  .ph{display:flex;align-items:center;justify-content:space-between;padding:17px 22px;border-bottom:1px solid var(--bd)}
+  .ph h3{font-size:15.5px;font-weight:700}.lnk{color:var(--em);font-size:12.5px;font-weight:700}
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--faint);font-weight:700;padding:12px 22px}
+  td{padding:14px 22px;border-top:1px solid var(--bd);font-size:13.5px}
+  .cust{display:flex;align-items:center;gap:11px}
+  .cav{width:34px;height:34px;border-radius:10px;background:var(--emsoft);color:var(--em);display:grid;place-items:center;font-weight:700;font-size:12px}
+  .cn{font-weight:650}.cm{font-size:11.5px;color:var(--faint)}
+  .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:8px;font-size:12px;font-weight:700}
+  .dot{width:6px;height:6px;border-radius:50%}
+  .br{background:#fbe9ea;color:var(--red)}.br .dot{background:var(--red)}
+  .bg2{background:var(--emsoft);color:var(--green)}.bg2 .dot{background:var(--green)}
+  .lost{margin:20px 22px 14px;background:linear-gradient(160deg,#122b2b,#0d1f1f);border-radius:16px;padding:24px;text-align:center;color:#fff}
+  .lost .lk{width:26px;height:26px;margin:0 auto 10px;opacity:.9}
+  .lost .lt{font-size:14px;font-weight:650;margin-bottom:6px}.lost .lm{color:#b9c7c2;font-size:12px;line-height:1.55}
+  .lost .lp{color:#e7c979;font-weight:750;margin-top:9px}
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 22px 20px;padding:12px;border-radius:12px;
+    background:var(--em);color:#fff;font-weight:700;font-size:13.5px}
+  .btn2{margin:0 22px 22px;padding:11px;border-radius:12px;border:1px solid var(--bd);text-align:center;font-weight:650;font-size:13px;color:var(--muted)}
+  svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+</style>
+</head>
+<body>
+<div class="v">
+  <div class="nav">
+    <div class="brand"><div class="mk">G1</div><div class="bn">Golden One</div></div>
+    <a class="on">Дашборд</a><a>Устройства</a><a>Заведение</a><a>Аудит</a><a>Настройки</a>
+    <div class="right">
+      <div class="seg"><span class="on">RU</span><span>UZ</span></div>
+      <div class="who"><div class="av">АК</div></div>
+    </div>
+  </div>
+  <div class="head"><div class="h1">Дашборд</div><div class="hs">Обзор портфеля устройств и просрочки</div></div>
+  <div class="ct">
+    <div class="kpis">
+      <div class="kpi"><div class="kt"><div class="ki" style="background:#eaf0fb;color:var(--blue)"><svg width="18" height="18" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="3"/></svg></div><span class="pill" style="background:var(--emsoft);color:var(--green)">+6</span></div><div class="kl">Устройств всего</div><div class="kv">128</div></div>
+      <div class="kpi"><div class="kt"><div class="ki" style="background:var(--emsoft);color:var(--green)"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div><span class="pill" style="background:var(--emsoft);color:var(--green)">+4</span></div><div class="kl">Активные договоры</div><div class="kv">96</div></div>
+      <div class="kpi"><div class="kt"><div class="ki" style="background:#fbf1de;color:var(--amber)"><svg width="18" height="18" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><span class="pill" style="background:#fbf1de;color:var(--amber)">+3</span></div><div class="kl">Просрочка</div><div class="kv">18</div></div>
+      <div class="kpi"><div class="kt"><div class="ki" style="background:#fbe9ea;color:var(--red)"><svg width="18" height="18" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div><span class="pill" style="background:#eef1f5;color:var(--muted)">0</span></div><div class="kl">Заблокировано</div><div class="kv">5</div></div>
+    </div>
+    <div class="grid">
+      <div class="panel">
+        <div class="ph"><h3>Требуют внимания</h3><span class="lnk">Все устройства →</span></div>
+        <table><thead><tr><th>Клиент</th><th>Устройство</th><th>Просрочка</th><th>Блокировка</th></tr></thead><tbody>
+        <tr><td><div class="cust"><div class="cav">ДР</div><div><div class="cn">Дилшод Рахимов</div><div class="cm">GO-2024-0417</div></div></div></td><td>iPhone 15<div class="cm">356728…4567</div></td><td><b style="color:var(--amber)">12 дн</b></td><td><span class="badge bg2"><span class="dot"></span>Разблокирован</span></td></tr>
+        <tr><td><div class="cust"><div class="cav">НЮ</div><div><div class="cn">Нигора Юсупова</div><div class="cm">GO-2024-0389</div></div></div></td><td>iPhone 14<div class="cm">356728…6543</div></td><td><b style="color:var(--red)">24 дн</b></td><td><span class="badge br"><span class="dot"></span>Заблокирован</span></td></tr>
+        <tr><td><div class="cust"><div class="cav">ТБ</div><div><div class="cn">Тимур Бекмуратов</div><div class="cm">GO-2025-0201</div></div></div></td><td>iPhone 15<div class="cm">356728…7766</div></td><td><b style="color:var(--amber)">4 дн</b></td><td><span class="badge bg2"><span class="dot"></span>Разблокирован</span></td></tr>
+        </tbody></table>
+      </div>
+      <div class="panel">
+        <div class="ph"><h3>Блокировка · Lost Mode</h3></div>
+        <div class="lost"><svg class="lk" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+          <div class="lt">Устройство заблокировано</div>
+          <div class="lm">Просрочка платежа. Для разблокировки обратитесь в Golden One.</div>
+          <div class="lp">+998 71 200-00-00</div></div>
+        <div class="btn"><svg width="16" height="16" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Заблокировать устройство</div>
+        <div class="btn2">Отправить предупреждение</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

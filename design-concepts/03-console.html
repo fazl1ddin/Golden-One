@@ -1,0 +1,110 @@
+<!-- @dsCard group="Концепты приложения" -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Console — плотный / сталь-циан</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  .v{width:1280px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    background:#0b0e13;color:#d7dde8;min-height:820px;display:grid;grid-template-columns:64px 1fr;
+    --cy:#4fd1c5;--cysoft:rgba(79,209,197,.13);--steel:#5eb0ef;--panel:#12161e;--p2:#161b25;--bd:#212734;
+    --muted:#8791a3;--faint:#5a6474;--green:#37d39b;--amber:#f2b338;--red:#f2555c}
+  .mono{font-family:'SF Mono',ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+  .rail{background:#0e1219;border-right:1px solid var(--bd);display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 0}
+  .mk{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--cy),#2b9c92);display:grid;place-items:center;color:#04211e;font-weight:800;font-size:15px;margin-bottom:14px}
+  .ri{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;color:var(--faint)}
+  .ri.on{background:var(--cysoft);color:var(--cy)}
+  .ri svg{width:19px;height:19px}
+  .main{min-width:0;display:flex;flex-direction:column}
+  .top{display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid var(--bd);background:#0e1219}
+  .pt{font-size:16px;font-weight:700;letter-spacing:.2px}
+  .crumb{font-size:11.5px;color:var(--faint)}
+  .srch{margin-left:14px;flex:1;max-width:300px;background:var(--panel);border:1px solid var(--bd);border-radius:8px;padding:8px 12px;font-size:12.5px;color:var(--faint)}
+  .live{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--muted);font-weight:600}
+  .lb{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(55,211,155,.2)}
+  .seg{display:flex;border:1px solid var(--bd);border-radius:7px;overflow:hidden}
+  .seg span{padding:5px 10px;font-size:11.5px;font-weight:700;color:var(--faint)}.seg span.on{background:var(--cysoft);color:var(--cy)}
+  .ct{padding:16px 22px;display:flex;flex-direction:column;gap:14px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .kpi{background:var(--panel);border:1px solid var(--bd);border-radius:10px;padding:13px 16px;position:relative}
+  .kpi::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:3px;border-radius:3px}
+  .kpi.b::before{background:var(--steel)}.kpi.g::before{background:var(--green)}.kpi.a::before{background:var(--amber)}.kpi.r::before{background:var(--red)}
+  .kl{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--faint);font-weight:600;padding-left:8px}
+  .kv{font-size:26px;font-weight:750;letter-spacing:-.5px;padding-left:8px;margin-top:4px}
+  .kd{font-size:11px;color:var(--muted);padding-left:8px;margin-top:2px}
+  .row{display:grid;grid-template-columns:1.7fr 1fr;gap:14px}
+  .panel{background:var(--panel);border:1px solid var(--bd);border-radius:10px;overflow:hidden}
+  .ph{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--bd)}
+  .ph h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+  .ph h3 span{color:var(--faint);margin-left:6px;font-weight:600}
+  .lnk{color:var(--cy);font-size:12px;font-weight:700}
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--faint);font-weight:600;padding:9px 16px}
+  td{padding:10px 16px;border-top:1px solid var(--bd);font-size:12.5px}
+  .cn{font-weight:650}.cm{font-size:11px;color:var(--faint)}
+  .badge{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700}
+  .dot{width:5px;height:5px;border-radius:50%}
+  .br{background:rgba(242,85,92,.14);color:var(--red)}.br .dot{background:var(--red)}
+  .bg2{background:rgba(55,211,155,.14);color:var(--green)}.bg2 .dot{background:var(--green)}
+  .over{color:var(--amber);font-weight:700}.over.hi{color:var(--red)}
+  .lost{margin:14px 16px 12px;background:#05070a;border:1px solid #1b212c;border-radius:10px;padding:18px;text-align:center}
+  .lost .lk{width:22px;height:22px;margin:0 auto 9px;color:#fff;opacity:.85}
+  .lost .lt{color:#fff;font-size:13px;font-weight:650;margin-bottom:5px}
+  .lost .lm{color:#aeb6c4;font-size:11.5px;line-height:1.5}.lost .lp{color:var(--cy);font-weight:750;margin-top:8px}
+  .btn{display:flex;align-items:center;justify-content:center;gap:7px;margin:0 16px 10px;padding:10px;border-radius:9px;background:var(--red);color:#fff;font-weight:700;font-size:12.5px}
+  .btn svg{width:15px;height:15px}
+  .cmd{margin:0 16px 14px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .cmd div{border:1px solid var(--bd);border-radius:8px;padding:8px;text-align:center;font-size:11.5px;font-weight:650;color:var(--muted)}
+  svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+</style>
+</head>
+<body>
+<div class="v">
+  <aside class="rail">
+    <div class="mk">G1</div>
+    <div class="ri on"><svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z"/></svg></div>
+    <div class="ri"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="3"/></svg></div>
+    <div class="ri"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M12 8v6M9 11h6"/></svg></div>
+    <div class="ri"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8"/></svg></div>
+    <div class="ri"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M4 12h2M18 12h2M12 4v2M12 18v2"/></svg></div>
+  </aside>
+  <div class="main">
+    <div class="top">
+      <div><div class="pt">Дашборд</div><div class="crumb">Взыскание · Оператор: Азиз Каримов</div></div>
+      <div class="srch mono">/ поиск: клиент · IMEI · договор</div>
+      <div class="live"><span class="lb"></span>MDM online · Mosyle</div>
+      <div class="seg"><span class="on">RU</span><span>UZ</span></div>
+    </div>
+    <div class="ct">
+      <div class="kpis">
+        <div class="kpi b"><div class="kl">Устройств</div><div class="kv mono">128</div><div class="kd">supervised: 121</div></div>
+        <div class="kpi g"><div class="kl">Активные</div><div class="kv mono">96</div><div class="kd">в графике</div></div>
+        <div class="kpi a"><div class="kl">Просрочка</div><div class="kv mono">18</div><div class="kd">&gt; 3 дней</div></div>
+        <div class="kpi r"><div class="kl">Заблокировано</div><div class="kv mono">5</div><div class="kd">Lost Mode активен</div></div>
+      </div>
+      <div class="row">
+        <div class="panel">
+          <div class="ph"><h3>Очередь взыскания <span>· 18</span></h3><span class="lnk">Открыть все →</span></div>
+          <table><thead><tr><th>Клиент</th><th>Устройство</th><th>IMEI</th><th>Просрочка</th><th>MDM</th><th>Блок</th></tr></thead><tbody>
+          <tr><td><div class="cn">Дилшод Рахимов</div><div class="cm mono">GO-2024-0417</div></td><td>iPhone 15</td><td class="mono cm">356728111234567</td><td class="mono over">12д</td><td><span class="badge bg2"><span class="dot"></span>ok</span></td><td><span class="badge bg2"><span class="dot"></span>off</span></td></tr>
+          <tr><td><div class="cn">Нигора Юсупова</div><div class="cm mono">GO-2024-0389</div></td><td>iPhone 14</td><td class="mono cm">356728119876543</td><td class="mono over hi">24д</td><td><span class="badge bg2"><span class="dot"></span>ok</span></td><td><span class="badge br"><span class="dot"></span>LOCK</span></td></tr>
+          <tr><td><div class="cn">Тимур Бекмуратов</div><div class="cm mono">GO-2025-0201</div></td><td>iPhone 15</td><td class="mono cm">356728118887766</td><td class="mono over">4д</td><td><span class="badge bg2"><span class="dot"></span>ok</span></td><td><span class="badge bg2"><span class="dot"></span>off</span></td></tr>
+          <tr><td><div class="cn">Малика Ниязова</div><div class="cm mono">GO-2025-0148</div></td><td>iPhone 13</td><td class="mono cm">356728113334455</td><td class="mono over">6д</td><td><span class="badge bg2"><span class="dot"></span>ok</span></td><td><span class="badge bg2"><span class="dot"></span>off</span></td></tr>
+          </tbody></table>
+        </div>
+        <div class="panel">
+          <div class="ph"><h3>Устройство · действия</h3></div>
+          <div class="lost"><svg class="lk" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+            <div class="lt">Устройство заблокировано</div>
+            <div class="lm">Просрочка платежа. Свяжитесь с Golden One.</div>
+            <div class="lp mono">+998 71 200-00-00</div></div>
+          <div class="btn"><svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>ЗАБЛОКИРОВАТЬ · LOST MODE</div>
+          <div class="cmd"><div>Найти</div><div>Звук</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
