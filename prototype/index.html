@@ -6,842 +6,529 @@
 <title>Golden One — Управление устройствами</title>
 <style>
   :root{
-    --bg:#0d0f14; --panel:#161922; --panel-2:#1d212c; --panel-3:#232838;
-    --border:#272d3b; --border-2:#333a4d;
-    --text:#e8eaf0; --muted:#98a0b3; --faint:#6b7386;
-    --gold:#e0bd67; --gold-dim:#b9974a; --gold-soft:rgba(224,189,103,.12);
-    --green:#3ecf8e; --green-soft:rgba(62,207,142,.14);
-    --amber:#f5b544; --amber-soft:rgba(245,181,68,.14);
+    --bg:#0b0e13; --panel:#12161e; --panel-2:#161b25; --panel-3:#1c2230;
+    --border:#212734; --border-2:#2c3444;
+    --text:#d7dde8; --muted:#8791a3; --faint:#5a6474;
+    --cy:#4fd1c5; --cy-dim:#2b9c92; --cy-soft:rgba(79,209,197,.13);
+    --steel:#5eb0ef; --steel-soft:rgba(94,176,239,.13);
+    --green:#37d39b; --green-soft:rgba(55,211,155,.14);
+    --amber:#f2b338; --amber-soft:rgba(242,179,56,.14);
     --red:#f2555c; --red-soft:rgba(242,85,92,.15);
-    --blue:#5b9bd9; --blue-soft:rgba(91,155,217,.14);
-    --radius:14px; --radius-sm:10px;
-    --shadow:0 10px 40px rgba(0,0,0,.45);
-    --font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    --radius:10px; --radius-sm:8px;
+    --shadow:0 12px 40px rgba(0,0,0,.5);
+    --mono:'SF Mono',ui-monospace,Menlo,Consolas,'Roboto Mono',monospace;
+    --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
   }
   :root[data-theme="light"]{
-    --bg:#f4f5f8; --panel:#ffffff; --panel-2:#f7f8fb; --panel-3:#eef0f5;
-    --border:#e3e6ee; --border-2:#d6dae6;
-    --text:#1a1e29; --muted:#5a6274; --faint:#8b93a6;
-    --gold:#b8892a; --gold-dim:#9a7226; --gold-soft:rgba(184,137,42,.12);
-    --shadow:0 10px 40px rgba(20,25,40,.12);
+    --bg:#eef1f5; --panel:#ffffff; --panel-2:#f5f7fa; --panel-3:#eaeef3;
+    --border:#dfe4ec; --border-2:#cfd6e1;
+    --text:#141a24; --muted:#586274; --faint:#8b95a6;
+    --cy:#0e9c8f; --cy-dim:#0b7c72; --cy-soft:rgba(14,156,143,.12);
+    --steel:#2f74c4; --steel-soft:rgba(47,116,196,.1);
+    --shadow:0 12px 40px rgba(20,25,40,.14);
   }
   *{margin:0;padding:0;box-sizing:border-box}
-  body{background:var(--bg);color:var(--text);font-family:var(--font);
-    font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
-  ::selection{background:var(--gold-soft)}
-  a{color:inherit;text-decoration:none}
+  body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13.5px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  ::selection{background:var(--cy-soft)}
   button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
   ::-webkit-scrollbar{width:9px;height:9px}
   ::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:6px}
+  svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
-  .app{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+  .app{display:grid;grid-template-columns:78px 1fr;min-height:100vh}
 
-  /* ── Sidebar ── */
-  .side{background:var(--panel);border-right:1px solid var(--border);
-    display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
-  .brand{display:flex;align-items:center;gap:12px;padding:22px 22px 20px}
-  .brand-mark{width:38px;height:38px;border-radius:11px;flex-shrink:0;
-    background:linear-gradient(135deg,var(--gold),var(--gold-dim));
-    display:grid;place-items:center;color:#1a140a;font-weight:800;font-size:18px;
-    box-shadow:0 4px 14px rgba(224,189,103,.3)}
-  .brand-name{font-weight:700;font-size:16px;letter-spacing:.2px}
-  .brand-sub{font-size:11px;color:var(--faint);letter-spacing:.3px}
-  .nav{padding:8px 12px;display:flex;flex-direction:column;gap:2px}
-  .nav-label{font-size:10.5px;text-transform:uppercase;letter-spacing:1.2px;
-    color:var(--faint);padding:14px 12px 6px;font-weight:600}
-  .nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;
-    border-radius:var(--radius-sm);color:var(--muted);font-weight:500;
-    transition:.15s;position:relative}
-  .nav-item svg{width:18px;height:18px;flex-shrink:0}
-  .nav-item:hover{background:var(--panel-2);color:var(--text)}
-  .nav-item.active{background:var(--gold-soft);color:var(--gold)}
-  .nav-item.active::before{content:"";position:absolute;left:-12px;top:8px;bottom:8px;
-    width:3px;border-radius:3px;background:var(--gold)}
-  .nav-badge{margin-left:auto;background:var(--red-soft);color:var(--red);
-    font-size:11px;font-weight:700;padding:1px 7px;border-radius:20px}
-  .side-foot{margin-top:auto;padding:14px;border-top:1px solid var(--border)}
-  .user{display:flex;align-items:center;gap:11px;padding:8px;border-radius:var(--radius-sm)}
-  .user:hover{background:var(--panel-2)}
-  .avatar{width:34px;height:34px;border-radius:50%;flex-shrink:0;
-    background:linear-gradient(135deg,#454d63,#2c3346);
-    display:grid;place-items:center;font-weight:700;font-size:13px;color:var(--text)}
-  .user-name{font-size:13px;font-weight:600}
-  .user-role{font-size:11px;color:var(--faint)}
+  /* ── Icon rail ── */
+  .rail{background:#0e1219;border-right:1px solid var(--border);display:flex;flex-direction:column;
+    align-items:center;padding:16px 0;position:sticky;top:0;height:100vh;gap:4px}
+  :root[data-theme="light"] .rail{background:#f6f8fb}
+  .mk{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--cy),var(--cy-dim));
+    display:grid;place-items:center;color:#04211e;font-weight:800;font-size:15px;margin-bottom:16px;flex-shrink:0}
+  .ri{width:58px;padding:9px 0;border-radius:11px;display:flex;flex-direction:column;align-items:center;gap:5px;
+    color:var(--faint);font-size:9.5px;font-weight:600;letter-spacing:.2px;transition:.14s;position:relative}
+  .ri svg{width:19px;height:19px}
+  .ri:hover{color:var(--text);background:var(--panel-2)}
+  .ri.on{background:var(--cy-soft);color:var(--cy)}
+  .ri .bg{position:absolute;top:4px;right:8px;background:var(--red);color:#fff;font-size:9px;font-weight:800;
+    min-width:15px;height:15px;border-radius:20px;display:grid;place-items:center;padding:0 3px}
+  .rail-foot{margin-top:auto}
+  .uav{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#2c3444,#1c2230);
+    display:grid;place-items:center;font-weight:700;font-size:12px;color:var(--text)}
 
   /* ── Main ── */
   .main{display:flex;flex-direction:column;min-width:0}
-  .topbar{display:flex;align-items:center;gap:16px;padding:16px 28px;
-    border-bottom:1px solid var(--border);background:var(--bg);
-    position:sticky;top:0;z-index:20}
-  .page-title{font-size:19px;font-weight:700}
-  .page-sub{font-size:12.5px;color:var(--muted)}
-  .search{flex:1;max-width:380px;margin-left:8px;position:relative}
-  .search input{width:100%;background:var(--panel);border:1px solid var(--border);
-    color:var(--text);padding:9px 12px 9px 36px;border-radius:var(--radius-sm);
-    font-size:13px;outline:none;transition:.15s}
-  .search input:focus{border-color:var(--gold-dim);box-shadow:0 0 0 3px var(--gold-soft)}
-  .search svg{position:absolute;left:11px;top:9px;width:16px;height:16px;color:var(--faint)}
-  .top-actions{margin-left:auto;display:flex;align-items:center;gap:10px}
-  .seg{display:flex;background:var(--panel);border:1px solid var(--border);
-    border-radius:9px;padding:2px}
-  .seg button{padding:5px 11px;border-radius:7px;font-size:12px;font-weight:600;
-    color:var(--muted)}
-  .seg button.on{background:var(--gold-soft);color:var(--gold)}
-  .icon-btn{width:36px;height:36px;border-radius:9px;border:1px solid var(--border);
-    background:var(--panel);display:grid;place-items:center;color:var(--muted)}
-  .icon-btn:hover{color:var(--text);border-color:var(--border-2)}
-  .icon-btn svg{width:17px;height:17px}
+  .top{display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid var(--border);
+    background:var(--bg);position:sticky;top:0;z-index:20}
+  .pt{font-size:16px;font-weight:700;letter-spacing:.2px}
+  .crumb{font-size:11.5px;color:var(--faint);margin-top:1px}
+  .srch{margin-left:12px;flex:1;max-width:320px;position:relative}
+  .srch input{width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);
+    padding:8px 12px 8px 32px;border-radius:var(--radius-sm);font-size:12.5px;outline:none;font-family:var(--mono)}
+  .srch input::placeholder{color:var(--faint)}
+  .srch input:focus{border-color:var(--cy-dim);box-shadow:0 0 0 3px var(--cy-soft)}
+  .srch svg{position:absolute;left:10px;top:8px;width:15px;height:15px;color:var(--faint)}
+  .live{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--muted);font-weight:600}
+  .lb{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px var(--green-soft)}
+  .seg{display:flex;border:1px solid var(--border);border-radius:7px;overflow:hidden}
+  .seg button{padding:6px 10px;font-size:11.5px;font-weight:700;color:var(--faint)}
+  .seg button.on{background:var(--cy-soft);color:var(--cy)}
+  .ibtn{width:33px;height:31px;border-radius:7px;border:1px solid var(--border);display:grid;place-items:center;color:var(--muted)}
+  .ibtn:hover{color:var(--text);border-color:var(--border-2)}
+  .ibtn svg{width:16px;height:16px}
+  .content{padding:16px 22px;flex:1;display:flex;flex-direction:column;gap:14px}
 
-  .content{padding:24px 28px;flex:1}
+  /* ── KPI ── */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .kpi{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;position:relative;overflow:hidden}
+  .kpi::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:3px;border-radius:3px;background:var(--steel)}
+  .kpi.g::before{background:var(--green)} .kpi.a::before{background:var(--amber)} .kpi.r::before{background:var(--red)}
+  .kl{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--faint);font-weight:600;padding-left:9px}
+  .kv{font-size:27px;font-weight:750;letter-spacing:-.5px;padding-left:9px;margin-top:4px}
+  .kd{font-size:11px;color:var(--muted);padding-left:9px;margin-top:3px}
 
-  /* ── KPI cards ── */
-  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px}
-  .kpi{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
-    padding:18px 20px;position:relative;overflow:hidden}
-  .kpi-top{display:flex;align-items:center;justify-content:space-between}
-  .kpi-ico{width:34px;height:34px;border-radius:9px;display:grid;place-items:center}
-  .kpi-ico svg{width:18px;height:18px}
-  .kpi-label{font-size:12.5px;color:var(--muted);margin-top:14px}
-  .kpi-val{font-size:28px;font-weight:750;letter-spacing:-.5px;margin-top:2px}
-  .kpi-delta{font-size:12px;font-weight:600;margin-top:6px;display:flex;align-items:center;gap:5px}
-  .up{color:var(--green)} .down{color:var(--red)}
-
-  /* ── Panels ── */
-  .grid-2{display:grid;grid-template-columns:1.6fr 1fr;gap:16px}
-  .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius)}
-  .panel-h{display:flex;align-items:center;justify-content:space-between;
-    padding:16px 20px;border-bottom:1px solid var(--border)}
-  .panel-h h3{font-size:15px;font-weight:650}
-  .panel-b{padding:8px 8px}
-  .link{color:var(--gold);font-size:12.5px;font-weight:600}
+  /* ── Panels / grid ── */
+  .row{display:grid;grid-template-columns:1.65fr 1fr;gap:14px}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+  .ph{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)}
+  .ph h3{font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+  .ph h3 span{color:var(--faint);margin-left:6px;font-weight:600}
+  .lnk{color:var(--cy);font-size:12px;font-weight:700}
 
   /* ── Table ── */
   table{width:100%;border-collapse:collapse}
-  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.6px;
-    color:var(--faint);font-weight:600;padding:10px 14px}
-  td{padding:12px 14px;border-top:1px solid var(--border);font-size:13.5px}
-  tbody tr{transition:.12s;cursor:pointer}
+  th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--faint);font-weight:600;padding:9px 16px}
+  td{padding:11px 16px;border-top:1px solid var(--border);font-size:12.5px}
+  tbody tr{cursor:pointer;transition:.1s}
   tbody tr:hover{background:var(--panel-2)}
-  .cust{display:flex;align-items:center;gap:11px}
-  .cust .avatar{width:32px;height:32px;font-size:12px}
-  .cust-name{font-weight:600} .cust-meta{font-size:11.5px;color:var(--faint)}
-  .mono{font-family:'SF Mono',ui-monospace,Menlo,monospace;font-size:12.5px;color:var(--muted)}
+  .cn{font-weight:650}.cm{font-size:11px;color:var(--faint)}
+  .over{font-weight:700;color:var(--amber)}.over.hi{color:var(--red)}
 
-  .badge{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:20px;
-    font-size:12px;font-weight:600;white-space:nowrap}
-  .badge .dot{width:6px;height:6px;border-radius:50%}
-  .b-green{background:var(--green-soft);color:var(--green)} .b-green .dot{background:var(--green)}
-  .b-amber{background:var(--amber-soft);color:var(--amber)} .b-amber .dot{background:var(--amber)}
-  .b-red{background:var(--red-soft);color:var(--red)} .b-red .dot{background:var(--red)}
-  .b-blue{background:var(--blue-soft);color:var(--blue)} .b-blue .dot{background:var(--blue)}
-  .b-gray{background:var(--panel-3);color:var(--muted)} .b-gray .dot{background:var(--faint)}
+  .badge{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;white-space:nowrap}
+  .badge .dot{width:5px;height:5px;border-radius:50%}
+  .b-green{background:var(--green-soft);color:var(--green)}.b-green .dot{background:var(--green)}
+  .b-amber{background:var(--amber-soft);color:var(--amber)}.b-amber .dot{background:var(--amber)}
+  .b-red{background:var(--red-soft);color:var(--red)}.b-red .dot{background:var(--red)}
+  .b-steel{background:var(--steel-soft);color:var(--steel)}.b-steel .dot{background:var(--steel)}
+  .b-gray{background:var(--panel-3);color:var(--muted)}.b-gray .dot{background:var(--faint)}
 
-  .btn{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:10px;
-    font-size:13px;font-weight:600;transition:.15s;border:1px solid transparent}
-  .btn svg{width:16px;height:16px}
-  .btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#1a140a;
-    box-shadow:0 4px 14px rgba(224,189,103,.25)}
-  .btn-gold:hover{filter:brightness(1.07)}
-  .btn-red{background:var(--red);color:#fff}
-  .btn-red:hover{filter:brightness(1.08)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 14px;border-radius:9px;
+    font-size:12.5px;font-weight:700;transition:.14s;border:1px solid transparent;letter-spacing:.2px}
+  .btn svg{width:15px;height:15px}
+  .btn-cy{background:linear-gradient(135deg,var(--cy),var(--cy-dim));color:#04211e}
+  .btn-cy:hover{filter:brightness(1.08)}
+  .btn-red{background:var(--red);color:#fff}.btn-red:hover{filter:brightness(1.08)}
   .btn-ghost{background:var(--panel-2);border-color:var(--border);color:var(--text)}
   .btn-ghost:hover{border-color:var(--border-2);background:var(--panel-3)}
-  .btn-danger-ghost{background:var(--red-soft);color:var(--red)}
-  .btn-danger-ghost:hover{background:rgba(242,85,92,.22)}
 
-  /* ── Event feed ── */
+  /* ── Feed ── */
   .feed{display:flex;flex-direction:column}
-  .ev{display:flex;gap:12px;padding:12px 14px;border-top:1px solid var(--border)}
+  .ev{display:flex;gap:11px;padding:11px 16px;border-top:1px solid var(--border)}
   .ev:first-child{border-top:none}
-  .ev-ico{width:30px;height:30px;border-radius:8px;flex-shrink:0;display:grid;place-items:center}
-  .ev-ico svg{width:15px;height:15px}
-  .ev-txt{font-size:13px}
-  .ev-time{font-size:11.5px;color:var(--faint);margin-top:2px}
+  .ev-ico{width:28px;height:28px;border-radius:7px;flex-shrink:0;display:grid;place-items:center}
+  .ev-ico svg{width:14px;height:14px}
+  .ev-txt{font-size:12.5px}.ev-time{font-size:11px;color:var(--faint);margin-top:1px}
 
-  /* ── Filters row ── */
-  .toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
-  .chip{padding:7px 13px;border-radius:9px;border:1px solid var(--border);background:var(--panel);
-    font-size:12.5px;font-weight:600;color:var(--muted)}
-  .chip:hover{color:var(--text)} .chip.on{background:var(--gold-soft);color:var(--gold);
-    border-color:transparent}
+  /* ── Toolbar / chips ── */
+  .toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .chip{padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--panel);font-size:12px;font-weight:600;color:var(--muted)}
+  .chip:hover{color:var(--text)}.chip.on{background:var(--cy-soft);color:var(--cy);border-color:transparent}
 
-  /* ── Device detail ── */
-  .detail{display:grid;grid-template-columns:1fr 340px;gap:16px}
-  .dev-hero{display:flex;gap:18px;align-items:center;padding:22px 24px}
-  .phone{width:58px;height:88px;border-radius:12px;flex-shrink:0;
-    border:2px solid var(--border-2);background:var(--panel-2);position:relative}
-  .phone::before{content:"";position:absolute;top:7px;left:50%;transform:translateX(-50%);
-    width:22px;height:4px;border-radius:3px;background:var(--border-2)}
-  .field{padding:13px 24px;border-top:1px solid var(--border);display:flex;
-    justify-content:space-between;align-items:center;gap:12px}
-  .field-l{font-size:12.5px;color:var(--muted)}
-  .field-v{font-size:13.5px;font-weight:600;text-align:right}
-  .action-card{padding:20px 22px}
-  .action-card h4{font-size:14px;margin-bottom:4px}
-  .action-card p{font-size:12.5px;color:var(--muted);margin-bottom:16px}
-  .action-list{display:flex;flex-direction:column;gap:9px}
-  .action-list .btn{width:100%;justify-content:center}
+  /* ── Detail ── */
+  .detail{display:grid;grid-template-columns:1fr 320px;gap:14px}
+  .hero{display:flex;gap:16px;align-items:center;padding:18px 20px}
+  .phone{width:50px;height:78px;border-radius:11px;flex-shrink:0;border:2px solid var(--border-2);background:var(--panel-2);position:relative}
+  .phone::before{content:"";position:absolute;top:6px;left:50%;transform:translateX(-50%);width:20px;height:4px;border-radius:3px;background:var(--border-2)}
+  .field{padding:11px 20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .field-l{font-size:12px;color:var(--muted)}.field-v{font-size:12.5px;font-weight:650;text-align:right}
+  .acard{padding:16px 18px}.acard h4{font-size:13px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+  .acard p{font-size:12px;color:var(--muted);margin-bottom:14px}
+  .alist{display:flex;flex-direction:column;gap:8px}.alist .btn{width:100%}
+  .alist .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+  /* ── Lost preview ── */
+  .lost{background:#05070a;border:1px solid #1b212c;border-radius:11px;padding:20px;text-align:center;margin-bottom:14px}
+  .lost .lk{width:24px;height:24px;margin:0 auto 9px;color:#fff;opacity:.85}
+  .lost .lt{color:#fff;font-size:13px;font-weight:650;margin-bottom:6px}
+  .lost .lm{color:#aeb6c4;font-size:11.5px;line-height:1.5}.lost .lp{color:var(--cy);font-weight:750;margin-top:9px}
 
   /* ── Modal ── */
-  .overlay{position:fixed;inset:0;background:rgba(6,8,12,.66);backdrop-filter:blur(4px);
-    display:grid;place-items:center;z-index:100;padding:20px}
-  .modal{background:var(--panel);border:1px solid var(--border);border-radius:18px;
-    width:100%;max-width:460px;box-shadow:var(--shadow);overflow:hidden;
-    animation:pop .18s ease}
-  @keyframes pop{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
-  .modal-h{padding:20px 24px 0;display:flex;gap:14px;align-items:flex-start}
-  .modal-ico{width:44px;height:44px;border-radius:12px;flex-shrink:0;display:grid;place-items:center}
-  .modal-ico svg{width:22px;height:22px}
-  .modal-h h3{font-size:17px} .modal-h p{font-size:13px;color:var(--muted);margin-top:3px}
-  .modal-b{padding:18px 24px}
-  .lostpreview{background:#000;border-radius:14px;padding:26px 20px;text-align:center;
-    border:1px solid var(--border-2);margin-bottom:16px}
-  .lostpreview .lp-lock{width:30px;height:30px;margin:0 auto 12px;color:#fff;opacity:.85}
-  .lostpreview .lp-title{color:#fff;font-size:15px;font-weight:600;margin-bottom:8px}
-  .lostpreview .lp-msg{color:#c9cdd6;font-size:12.5px;line-height:1.55}
-  .lostpreview .lp-phone{color:var(--gold);font-size:14px;font-weight:700;margin-top:10px}
-  .form-row{margin-bottom:14px}
-  .form-row label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:600}
-  .form-row input,.form-row select,.form-row textarea{width:100%;background:var(--panel-2);
-    border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:10px;
-    font-size:13.5px;outline:none;font-family:inherit}
-  .form-row textarea{resize:vertical;min-height:64px}
-  .form-row input:focus,.form-row select:focus,.form-row textarea:focus{
-    border-color:var(--gold-dim);box-shadow:0 0 0 3px var(--gold-soft)}
-  .modal-f{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;
-    justify-content:flex-end;background:var(--panel-2)}
-  .warn{display:flex;gap:10px;padding:11px 13px;border-radius:10px;background:var(--amber-soft);
-    font-size:12.5px;color:var(--amber);margin-bottom:16px;align-items:flex-start}
-  .warn svg{width:16px;height:16px;flex-shrink:0;margin-top:1px}
+  .overlay{position:fixed;inset:0;background:rgba(4,6,10,.7);backdrop-filter:blur(4px);display:grid;place-items:center;z-index:100;padding:20px}
+  .modal{background:var(--panel);border:1px solid var(--border);border-radius:14px;width:100%;max-width:440px;box-shadow:var(--shadow);overflow:hidden;animation:pop .16s ease}
+  @keyframes pop{from{transform:scale(.97);opacity:0}to{transform:scale(1);opacity:1}}
+  .modal-h{padding:18px 20px 0;display:flex;gap:12px;align-items:flex-start}
+  .modal-ico{width:40px;height:40px;border-radius:10px;flex-shrink:0;display:grid;place-items:center}
+  .modal-ico svg{width:20px;height:20px}
+  .modal-h h3{font-size:15px}.modal-h p{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .modal-b{padding:16px 20px}
+  .form-row{margin-bottom:12px}
+  .form-row label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-bottom:5px;font-weight:600}
+  .form-row input,.form-row select,.form-row textarea{width:100%;background:var(--panel-2);border:1px solid var(--border);color:var(--text);padding:9px 11px;border-radius:8px;font-size:13px;outline:none;font-family:inherit}
+  .form-row textarea{resize:vertical;min-height:60px}
+  .form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--cy-dim);box-shadow:0 0 0 3px var(--cy-soft)}
+  .modal-f{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:9px;justify-content:flex-end;background:var(--panel-2)}
+  .warn{display:flex;gap:9px;padding:10px 12px;border-radius:9px;background:var(--amber-soft);font-size:12px;color:var(--amber);margin-bottom:14px;align-items:flex-start}
+  .warn svg{width:15px;height:15px;flex-shrink:0;margin-top:1px}
 
-  .empty{padding:60px 20px;text-align:center;color:var(--faint)}
-  .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  .set-item{padding:16px 20px;border-top:1px solid var(--border)}
-  .set-item:first-child{border-top:none}
-  .toggle{width:42px;height:24px;border-radius:20px;background:var(--panel-3);position:relative;
-    border:1px solid var(--border);transition:.2s}
-  .toggle.on{background:var(--gold)}
-  .toggle::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;
-    border-radius:50%;background:#fff;transition:.2s}
-  .toggle.on::after{left:20px}
-  .fade{animation:fade .25s ease}
-  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-  .hidden{display:none!important}
-  @media(max-width:1080px){.kpi-grid{grid-template-columns:repeat(2,1fr)}
-    .grid-2,.detail{grid-template-columns:1fr}.settings-grid{grid-template-columns:1fr}}
-  @media(max-width:720px){.app{grid-template-columns:1fr}.side{display:none}}
+  .steps{padding:16px 20px}
+  .step{display:flex;gap:11px;padding:7px 0;align-items:center;color:var(--muted);font-size:12.5px}
+  .stepn{width:22px;height:22px;border-radius:6px;background:var(--cy-soft);color:var(--cy);display:grid;place-items:center;font-weight:700;flex-shrink:0;font-size:11px}
+  .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .setrow{padding:14px 18px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+  .setrow:first-child{border-top:none}
+  .toggle{width:40px;height:23px;border-radius:20px;background:var(--panel-3);position:relative;border:1px solid var(--border);transition:.2s;cursor:pointer}
+  .toggle.on{background:var(--cy)}
+  .toggle::after{content:"";position:absolute;top:2px;left:2px;width:17px;height:17px;border-radius:50%;background:#fff;transition:.2s}
+  .toggle.on::after{left:19px}
+  .empty{padding:40px 20px;text-align:center;color:var(--faint)}
+  .fade{animation:fade .22s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+  @media(max-width:1080px){.kpis{grid-template-columns:repeat(2,1fr)}.row,.detail,.fgrid{grid-template-columns:1fr}}
+  @media(max-width:720px){.app{grid-template-columns:1fr}.rail{display:none}}
 </style>
 </head>
 <body>
 <div class="app">
-  <!-- Sidebar -->
-  <aside class="side">
-    <div class="brand">
-      <div class="brand-mark">G1</div>
-      <div>
-        <div class="brand-name">Golden One</div>
-        <div class="brand-sub" data-i="brandSub">Device Control</div>
-      </div>
-    </div>
-    <nav class="nav" id="nav"></nav>
-    <div class="side-foot">
-      <div class="user">
-        <div class="avatar">АК</div>
-        <div>
-          <div class="user-name">Азиз Каримов</div>
-          <div class="user-role" data-i="roleCollector">Оператор взыскания</div>
-        </div>
-      </div>
-    </div>
+  <aside class="rail">
+    <div class="mk">G1</div>
+    <nav id="nav" style="display:flex;flex-direction:column;gap:4px;align-items:center"></nav>
+    <div class="rail-foot"><div class="uav">АК</div></div>
   </aside>
-
-  <!-- Main -->
   <div class="main">
-    <header class="topbar">
+    <header class="top">
       <div>
-        <div class="page-title" id="pageTitle">Дашборд</div>
-        <div class="page-sub" id="pageSub"></div>
+        <div class="pt" id="pageTitle">Дашборд</div>
+        <div class="crumb" id="pageSub"></div>
       </div>
-      <div class="search">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-        <input id="search" placeholder="Поиск по клиенту, IMEI, договору…">
+      <div class="srch">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="search" placeholder="/ поиск: клиент · IMEI · договор">
       </div>
-      <div class="top-actions">
-        <div class="seg" id="langSeg">
-          <button data-lang="ru" class="on">RU</button>
-          <button data-lang="uz">UZ</button>
-        </div>
-        <button class="icon-btn" id="themeBtn" title="Тема">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
-        </button>
-      </div>
+      <div class="live"><span class="lb"></span><span id="liveTxt">MDM online · Mosyle</span></div>
+      <div class="seg" id="langSeg"><button data-lang="ru" class="on">RU</button><button data-lang="uz">UZ</button></div>
+      <button class="ibtn" id="themeBtn" title="Тема"><svg viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></button>
     </header>
     <main class="content" id="view"></main>
   </div>
 </div>
-
 <div id="modalRoot"></div>
 
 <script>
-/* ─────────────── i18n ─────────────── */
+/* ─── i18n ─── */
 const I18N = {
   ru:{
-    brandSub:"Управление устройствами", roleCollector:"Оператор взыскания",
-    nMain:"Основное", nOps:"Операции",
-    dashboard:"Дашборд", devices:"Устройства", enroll:"Заведение устройства",
-    audit:"Журнал аудита", settings:"Настройки",
-    subDash:"Обзор портфеля устройств и просрочки",
-    subDevices:"Все финансируемые устройства",
-    subEnroll:"Регистрация нового устройства на точке продажи",
-    subAudit:"Все действия операторов",
+    dashboard:"Дашборд", devices:"Устройства", enroll:"Заведение", audit:"Аудит", settings:"Настройки",
+    subDash:"Взыскание · Оператор: Азиз Каримов", subDevices:"Все финансируемые устройства",
+    subEnroll:"Регистрация нового устройства на точке продажи", subAudit:"Все действия операторов",
     subSettings:"MDM, роли и шаблоны",
-    kTotal:"Устройств всего", kActive:"Активные договоры",
-    kOverdue:"Просрочка", kLocked:"Заблокировано",
-    recentDevices:"Требуют внимания", eventFeed:"Последние события", viewAll:"Все",
-    thCustomer:"Клиент", thDevice:"Устройство", thImei:"IMEI",
-    thLoan:"Договор", thMdm:"MDM", thLock:"Блокировка", thStatus:"Статус", thWhen:"Когда", thWho:"Оператор", thAction:"Действие",
+    kTotal:"Устройств", kActive:"Активные", kOverdue:"Просрочка", kLocked:"Заблокировано",
+    kSup:"supervised", kSched:"в графике", kOver3:"> 3 дней", kLostOn:"Lost Mode активен",
+    queue:"Очередь взыскания", eventFeed:"Последние события", viewAll:"Все",
+    thCustomer:"Клиент", thDevice:"Устройство", thImei:"IMEI", thLoan:"Договор", thMdm:"MDM", thLock:"Блок",
+    thWhen:"Когда", thWho:"Оператор", thAction:"Действие",
     stActive:"Активен", stOverdue:"Просрочка", stPaid:"Погашен",
-    stEnrolled:"Supervised", stPending:"Ожидает", stReleased:"Отпущен",
-    lkLocked:"Заблокирован", lkUnlocked:"Разблокирован",
+    stEnrolled:"supervised", stPending:"ожидает", stReleased:"отпущен",
+    lkLocked:"LOCK", lkUnlocked:"off",
     filterAll:"Все", filterOverdue:"Просрочка", filterLocked:"Заблокированы", filterActive:"Активные",
-    daysOverdue:"дн. просрочки", loanLeft:"осталось",
-    btnLock:"Заблокировать", btnUnlock:"Разблокировать", btnLocate:"Найти", btnSound:"Звук",
-    btnBack:"← К устройствам",
-    devInfo:"Информация об устройстве", loanInfo:"Кредитный договор",
-    actionsTitle:"Дистанционное управление",
-    actionsHint:"Команды отправляются через MDM (Mosyle) на устройство.",
+    daysOverdue:"дн. просрочки",
+    btnLock:"Заблокировать · Lost Mode", btnUnlock:"Разблокировать", btnLocate:"Найти", btnSound:"Звук", btnBack:"← К устройствам",
+    devInfo:"Устройство", loanInfo:"Кредитный договор", actionsTitle:"Дистанционное управление",
+    actionsHint:"Команды идут через MDM (Mosyle) на устройство.",
     fModel:"Модель", fSerial:"Serial", fImei:"IMEI", fOs:"iOS", fSup:"Supervision", fEnroll:"MDM статус", fLastSeen:"На связи",
     fContract:"Договор №", fAmount:"Сумма", fMonthly:"Платёж/мес", fPaid:"Оплачено", fNext:"След. платёж", fDays:"Просрочка",
     cmdHistory:"История команд",
-    lockTitle:"Заблокировать устройство?", lockSub:"iPhone перейдёт в режим Lost Mode",
+    lockTitle:"Заблокировать устройство?", lockSub:"iPhone перейдёт в Lost Mode",
     lockWarn:"Клиент не сможет пользоваться телефоном. Экстренные вызовы останутся доступны. Действие логируется.",
-    lockMsgLabel:"Сообщение на экране блокировки", lockPhoneLabel:"Телефон для связи",
-    lockReason:"Причина", reasonOverdue:"Просрочка платежа", reasonFraud:"Подозрение на мошенничество", reasonOther:"Другое",
+    lockMsgLabel:"Сообщение на экране блокировки", lockPhoneLabel:"Телефон для связи", lockReason:"Причина",
+    reasonOverdue:"Просрочка платежа", reasonFraud:"Подозрение на мошенничество", reasonOther:"Другое",
     previewTitle:"Устройство заблокировано", cancel:"Отмена", confirmLock:"Заблокировать",
-    unlockTitle:"Разблокировать устройство?", unlockSub:"Lost Mode будет отключён, телефон снова заработает",
+    unlockTitle:"Разблокировать устройство?", unlockSub:"Lost Mode выключится, телефон заработает",
     unlockConfirm:"Оплата получена — разблокировать", confirmUnlock:"Разблокировать",
-    enrollTitle:"Новое устройство", enrollStep:"Заведение через Apple Configurator",
+    enrollStep:"Заведение через Apple Configurator",
     eCustomer:"Клиент (ФИО)", ePhone:"Телефон клиента", eContract:"Номер договора",
     eModel:"Модель iPhone", eSerial:"Serial number", eImei:"IMEI",
     eCheck:"Проверить supervision", eRegister:"Зарегистрировать устройство",
-    eStep1:"1. Подключите iPhone к Mac с Apple Configurator",
-    eStep2:"2. Сотрите и переведите в Supervised, установите профиль MDM",
-    eStep3:"3. Включите managed Activation Lock",
-    eStep4:"4. Заполните данные ниже и зарегистрируйте",
-    toastLocked:"Устройство заблокировано (Lost Mode отправлен)",
-    toastUnlocked:"Устройство разблокировано",
-    toastLocate:"Запрос геолокации отправлен",
-    toastSound:"Команда «Звук» отправлена",
-    toastRegistered:"Устройство зарегистрировано",
-    setMdm:"Подключение MDM", setMdmSub:"Провайдер и API",
-    setRoles:"Роли и доступ", setTemplate:"Шаблон блокировки",
-    setProvider:"Провайдер", setStatus:"Статус подключения", connected:"Подключено",
-    setLang:"Язык интерфейса", setTheme:"Тёмная тема",
-    evLock:"заблокировал устройство", evUnlock:"разблокировал устройство",
-    evEnroll:"завёл устройство", evLocate:"запросил геолокацию",
+    eStep1:"Подключите iPhone к Mac с Apple Configurator",
+    eStep2:"Сотрите и переведите в Supervised, установите профиль MDM",
+    eStep3:"Включите managed Activation Lock",
+    eStep4:"Заполните данные ниже и зарегистрируйте",
+    toastLocked:"Устройство заблокировано (Lost Mode отправлен)", toastUnlocked:"Устройство разблокировано",
+    toastLocate:"Запрос геолокации отправлен", toastSound:"Команда «Звук» отправлена",
+    toastRegistered:"Устройство зарегистрировано", toastSup:"Supervision: ✓ OK",
+    setMdm:"Подключение MDM", setRoles:"Роли и доступ", setTemplate:"Шаблон блокировки",
+    setProvider:"Провайдер", setStatus:"Статус", connected:"Подключено", setLang:"Язык интерфейса", setTheme:"Тёмная тема",
+    evLock:"заблокировал устройство", evUnlock:"разблокировал устройство", evEnroll:"завёл устройство", evLocate:"запросил геолокацию",
     ago:"назад", now:"только что", min:"мин", hr:"ч",
   },
   uz:{
-    brandSub:"Qurilmalarni boshqarish", roleCollector:"Undiruv operatori",
-    nMain:"Asosiy", nOps:"Amallar",
-    dashboard:"Boshqaruv paneli", devices:"Qurilmalar", enroll:"Qurilma qo‘shish",
-    audit:"Audit jurnali", settings:"Sozlamalar",
-    subDash:"Qurilmalar portfeli va kechikishlar sharhi",
-    subDevices:"Barcha moliyalashtirilgan qurilmalar",
-    subEnroll:"Savdo nuqtasida yangi qurilmani ro‘yxatga olish",
-    subAudit:"Operatorlarning barcha amallari",
+    dashboard:"Boshqaruv", devices:"Qurilmalar", enroll:"Qo‘shish", audit:"Audit", settings:"Sozlamalar",
+    subDash:"Undiruv · Operator: Aziz Karimov", subDevices:"Barcha moliyalashtirilgan qurilmalar",
+    subEnroll:"Savdo nuqtasida yangi qurilmani ro‘yxatga olish", subAudit:"Operatorlarning barcha amallari",
     subSettings:"MDM, rollar va shablonlar",
-    kTotal:"Jami qurilmalar", kActive:"Faol shartnomalar",
-    kOverdue:"Kechikish", kLocked:"Bloklangan",
-    recentDevices:"E’tibor talab qiladi", eventFeed:"So‘nggi hodisalar", viewAll:"Barchasi",
-    thCustomer:"Mijoz", thDevice:"Qurilma", thImei:"IMEI",
-    thLoan:"Shartnoma", thMdm:"MDM", thLock:"Blok", thStatus:"Holat", thWhen:"Vaqt", thWho:"Operator", thAction:"Amal",
+    kTotal:"Qurilmalar", kActive:"Faol", kOverdue:"Kechikish", kLocked:"Bloklangan",
+    kSup:"supervised", kSched:"jadval bo‘yicha", kOver3:"> 3 kun", kLostOn:"Lost Mode faol",
+    queue:"Undiruv navbati", eventFeed:"So‘nggi hodisalar", viewAll:"Barchasi",
+    thCustomer:"Mijoz", thDevice:"Qurilma", thImei:"IMEI", thLoan:"Shartnoma", thMdm:"MDM", thLock:"Blok",
+    thWhen:"Vaqt", thWho:"Operator", thAction:"Amal",
     stActive:"Faol", stOverdue:"Kechikish", stPaid:"To‘langan",
-    stEnrolled:"Supervised", stPending:"Kutilmoqda", stReleased:"Ozod qilingan",
-    lkLocked:"Bloklangan", lkUnlocked:"Blokdan chiqarilgan",
+    stEnrolled:"supervised", stPending:"kutilmoqda", stReleased:"ozod",
+    lkLocked:"LOCK", lkUnlocked:"off",
     filterAll:"Barchasi", filterOverdue:"Kechikish", filterLocked:"Bloklangan", filterActive:"Faol",
-    daysOverdue:"kun kechikish", loanLeft:"qoldi",
-    btnLock:"Bloklash", btnUnlock:"Blokdan chiqarish", btnLocate:"Topish", btnSound:"Ovoz",
-    btnBack:"← Qurilmalarga",
-    devInfo:"Qurilma ma’lumotlari", loanInfo:"Kredit shartnomasi",
-    actionsTitle:"Masofadan boshqarish",
+    daysOverdue:"kun kechikish",
+    btnLock:"Bloklash · Lost Mode", btnUnlock:"Blokdan chiqarish", btnLocate:"Topish", btnSound:"Ovoz", btnBack:"← Qurilmalarga",
+    devInfo:"Qurilma", loanInfo:"Kredit shartnomasi", actionsTitle:"Masofadan boshqarish",
     actionsHint:"Buyruqlar MDM (Mosyle) orqali qurilmaga yuboriladi.",
     fModel:"Model", fSerial:"Serial", fImei:"IMEI", fOs:"iOS", fSup:"Supervision", fEnroll:"MDM holati", fLastSeen:"Aloqada",
     fContract:"Shartnoma №", fAmount:"Summa", fMonthly:"Oylik to‘lov", fPaid:"To‘langan", fNext:"Keyingi to‘lov", fDays:"Kechikish",
     cmdHistory:"Buyruqlar tarixi",
     lockTitle:"Qurilma bloklansinmi?", lockSub:"iPhone Lost Mode rejimiga o‘tadi",
     lockWarn:"Mijoz telefondan foydalana olmaydi. Favqulodda qo‘ng‘iroqlar ishlaydi. Amal jurnalga yoziladi.",
-    lockMsgLabel:"Blok ekranidagi xabar", lockPhoneLabel:"Bog‘lanish uchun telefon",
-    lockReason:"Sabab", reasonOverdue:"To‘lov kechikishi", reasonFraud:"Firibgarlik shubhasi", reasonOther:"Boshqa",
+    lockMsgLabel:"Blok ekranidagi xabar", lockPhoneLabel:"Bog‘lanish uchun telefon", lockReason:"Sabab",
+    reasonOverdue:"To‘lov kechikishi", reasonFraud:"Firibgarlik shubhasi", reasonOther:"Boshqa",
     previewTitle:"Qurilma bloklangan", cancel:"Bekor qilish", confirmLock:"Bloklash",
-    unlockTitle:"Blokdan chiqarilsinmi?", unlockSub:"Lost Mode o‘chiriladi, telefon qayta ishlaydi",
+    unlockTitle:"Blokdan chiqarilsinmi?", unlockSub:"Lost Mode o‘chadi, telefon ishlaydi",
     unlockConfirm:"To‘lov qabul qilindi — blokdan chiqarish", confirmUnlock:"Blokdan chiqarish",
-    enrollTitle:"Yangi qurilma", enrollStep:"Apple Configurator orqali qo‘shish",
+    enrollStep:"Apple Configurator orqali qo‘shish",
     eCustomer:"Mijoz (F.I.Sh.)", ePhone:"Mijoz telefoni", eContract:"Shartnoma raqami",
     eModel:"iPhone modeli", eSerial:"Serial raqam", eImei:"IMEI",
     eCheck:"Supervision tekshirish", eRegister:"Qurilmani ro‘yxatga olish",
-    eStep1:"1. iPhone’ni Apple Configurator’li Mac’ga ulang",
-    eStep2:"2. Tozalab, Supervised qiling, MDM profilini o‘rnating",
-    eStep3:"3. Managed Activation Lock’ni yoqing",
-    eStep4:"4. Quyidagi ma’lumotlarni to‘ldirib ro‘yxatga oling",
-    toastLocked:"Qurilma bloklandi (Lost Mode yuborildi)",
-    toastUnlocked:"Qurilma blokdan chiqarildi",
-    toastLocate:"Joylashuv so‘rovi yuborildi",
-    toastSound:"«Ovoz» buyrug‘i yuborildi",
-    toastRegistered:"Qurilma ro‘yxatga olindi",
-    setMdm:"MDM ulanishi", setMdmSub:"Provayder va API",
-    setRoles:"Rollar va kirish", setTemplate:"Blok shabloni",
-    setProvider:"Provayder", setStatus:"Ulanish holati", connected:"Ulangan",
-    setLang:"Interfeys tili", setTheme:"Qorong‘i mavzu",
-    evLock:"qurilmani blokladi", evUnlock:"qurilmani blokdan chiqardi",
-    evEnroll:"qurilma qo‘shdi", evLocate:"joylashuvni so‘radi",
+    eStep1:"iPhone’ni Apple Configurator’li Mac’ga ulang",
+    eStep2:"Tozalab, Supervised qiling, MDM profilini o‘rnating",
+    eStep3:"Managed Activation Lock’ni yoqing",
+    eStep4:"Quyidagi ma’lumotlarni to‘ldirib ro‘yxatga oling",
+    toastLocked:"Qurilma bloklandi (Lost Mode yuborildi)", toastUnlocked:"Qurilma blokdan chiqarildi",
+    toastLocate:"Joylashuv so‘rovi yuborildi", toastSound:"«Ovoz» buyrug‘i yuborildi",
+    toastRegistered:"Qurilma ro‘yxatga olindi", toastSup:"Supervision: ✓ OK",
+    setMdm:"MDM ulanishi", setRoles:"Rollar va kirish", setTemplate:"Blok shabloni",
+    setProvider:"Provayder", setStatus:"Holat", connected:"Ulangan", setLang:"Interfeys tili", setTheme:"Qorong‘i mavzu",
+    evLock:"qurilmani blokladi", evUnlock:"qurilmani blokdan chiqardi", evEnroll:"qurilma qo‘shdi", evLocate:"joylashuvni so‘radi",
     ago:"oldin", now:"hozirgina", min:"daq", hr:"soat",
   }
 };
-let lang = 'ru';
-const t = k => (I18N[lang][k] ?? k);
+let lang='ru';
+const t=k=>(I18N[lang][k]??k);
 
-/* ─────────────── Mock data ─────────────── */
-const DEVICES = [
-  {id:'d1', name:'Дилшод Рахимов', initials:'ДР', phone:'+998 90 123-45-67',
-   model:'iPhone 15', serial:'F2LW9K3QH1', imei:'356728111234567', ios:'17.5',
-   contract:'GO-2024-0417', amount:'9 800 000', monthly:'980 000', paid:'2 940 000',
-   next:'2026-07-10', daysOverdue:12, loan:'overdue', mdm:'enrolled', lock:'unlocked', lastSeen:'2 ч'},
-  {id:'d2', name:'Нигора Юсупова', initials:'НЮ', phone:'+998 91 222-33-44',
-   model:'iPhone 14', serial:'G8XM2P0RT4', imei:'356728119876543', ios:'17.4',
-   contract:'GO-2024-0389', amount:'8 200 000', monthly:'820 000', paid:'820 000',
-   next:'2026-06-28', daysOverdue:24, loan:'overdue', mdm:'enrolled', lock:'locked', lastSeen:'5 ч'},
-  {id:'d3', name:'Сардор Алиев', initials:'СА', phone:'+998 93 555-66-77',
-   model:'iPhone 15 Pro', serial:'H1KD7L9WQ2', imei:'356728115556677', ios:'17.5',
-   contract:'GO-2025-0102', amount:'14 500 000', monthly:'1 208 000', paid:'7 250 000',
-   next:'2026-08-05', daysOverdue:0, loan:'active', mdm:'enrolled', lock:'unlocked', lastSeen:'10 мин'},
-  {id:'d4', name:'Малика Ниязова', initials:'МН', phone:'+998 90 888-99-00',
-   model:'iPhone 13', serial:'J3PR5T2XN8', imei:'356728113334455', ios:'17.3',
-   contract:'GO-2025-0148', amount:'6 900 000', monthly:'690 000', paid:'4 830 000',
-   next:'2026-08-01', daysOverdue:0, loan:'active', mdm:'enrolled', lock:'unlocked', lastSeen:'1 ч'},
-  {id:'d5', name:'Тимур Бекмуратов', initials:'ТБ', phone:'+998 94 111-22-33',
-   model:'iPhone 15', serial:'K9WL3M1QP7', imei:'356728118887766', ios:'17.5',
-   contract:'GO-2025-0201', amount:'9 800 000', monthly:'980 000', paid:'980 000',
-   next:'2026-07-18', daysOverdue:4, loan:'overdue', mdm:'enrolled', lock:'unlocked', lastSeen:'30 мин'},
-  {id:'d6', name:'Гульнора Сафарова', initials:'ГС', phone:'+998 91 444-55-66',
-   model:'iPhone 14 Pro', serial:'L2MN8K4RT9', imei:'356728112223344', ios:'17.4',
-   contract:'GO-2024-0356', amount:'13 200 000', monthly:'1 100 000', paid:'13 200 000',
-   next:'—', daysOverdue:0, loan:'paid', mdm:'released', lock:'unlocked', lastSeen:'3 дн'},
+/* ─── Data ─── */
+const DEVICES=[
+  {id:'d1',name:'Дилшод Рахимов',initials:'ДР',phone:'+998 90 123-45-67',model:'iPhone 15',serial:'F2LW9K3QH1',imei:'356728111234567',ios:'17.5',contract:'GO-2024-0417',amount:'9 800 000',monthly:'980 000',paid:'2 940 000',next:'2026-07-10',daysOverdue:12,loan:'overdue',mdm:'enrolled',lock:'unlocked',lastSeen:'2 ч'},
+  {id:'d2',name:'Нигора Юсупова',initials:'НЮ',phone:'+998 91 222-33-44',model:'iPhone 14',serial:'G8XM2P0RT4',imei:'356728119876543',ios:'17.4',contract:'GO-2024-0389',amount:'8 200 000',monthly:'820 000',paid:'820 000',next:'2026-06-28',daysOverdue:24,loan:'overdue',mdm:'enrolled',lock:'locked',lastSeen:'5 ч'},
+  {id:'d3',name:'Сардор Алиев',initials:'СА',phone:'+998 93 555-66-77',model:'iPhone 15 Pro',serial:'H1KD7L9WQ2',imei:'356728115556677',ios:'17.5',contract:'GO-2025-0102',amount:'14 500 000',monthly:'1 208 000',paid:'7 250 000',next:'2026-08-05',daysOverdue:0,loan:'active',mdm:'enrolled',lock:'unlocked',lastSeen:'10 мин'},
+  {id:'d4',name:'Малика Ниязова',initials:'МН',phone:'+998 90 888-99-00',model:'iPhone 13',serial:'J3PR5T2XN8',imei:'356728113334455',ios:'17.3',contract:'GO-2025-0148',amount:'6 900 000',monthly:'690 000',paid:'4 830 000',next:'2026-08-01',daysOverdue:6,loan:'overdue',mdm:'enrolled',lock:'unlocked',lastSeen:'1 ч'},
+  {id:'d5',name:'Тимур Бекмуратов',initials:'ТБ',phone:'+998 94 111-22-33',model:'iPhone 15',serial:'K9WL3M1QP7',imei:'356728118887766',ios:'17.5',contract:'GO-2025-0201',amount:'9 800 000',monthly:'980 000',paid:'980 000',next:'2026-07-18',daysOverdue:4,loan:'overdue',mdm:'enrolled',lock:'unlocked',lastSeen:'30 мин'},
+  {id:'d6',name:'Гульнора Сафарова',initials:'ГС',phone:'+998 91 444-55-66',model:'iPhone 14 Pro',serial:'L2MN8K4RT9',imei:'356728112223344',ios:'17.4',contract:'GO-2024-0356',amount:'13 200 000',monthly:'1 100 000',paid:'13 200 000',next:'—',daysOverdue:0,loan:'paid',mdm:'released',lock:'unlocked',lastSeen:'3 дн'},
 ];
-let AUDIT = [
-  {who:'Азиз Каримов', act:'evLock', dev:'Нигора Юсупова', t:8},
-  {who:'Система', act:'evEnroll', dev:'Тимур Бекмуратов', t:180},
-  {who:'Азиз Каримов', act:'evLocate', dev:'Дилшод Рахимов', t:320},
+let AUDIT=[
+  {who:'Азиз Каримов',act:'evLock',dev:'Нигора Юсупова',t:8},
+  {who:'Система',act:'evEnroll',dev:'Тимур Бекмуратов',t:180},
+  {who:'Азиз Каримов',act:'evLocate',dev:'Дилшод Рахимов',t:320},
 ];
 
-/* ─────────────── Icons ─────────────── */
-const IC = {
+/* ─── Icons ─── */
+const IC={
   dash:'<path d="M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z"/>',
-  devices:'<rect x="5" y="2" width="14" height="20" rx="3"/><path d="M11 18h2"/>',
+  devices:'<rect x="5" y="2" width="14" height="20" rx="3"/>',
   enroll:'<rect x="5" y="2" width="14" height="20" rx="3"/><path d="M12 8v6M9 11h6"/>',
   audit:'<path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h5"/>',
-  settings:'<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3.9a7 7 0 0 0-1.7-1L14.5 2h-4l-.4 2.5a7 7 0 0 0-1.7 1L6 4.6 4 8l2 1.5a7 7 0 0 0 0 2L4 13l2 3.4 2.3-.9a7 7 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7 7 0 0 0 1.7-1l2.3.9 2-3.4-2-1.5c.1-.3.1-.7.1-1Z"/>',
+  settings:'<circle cx="12" cy="12" r="3"/><path d="M4 12h2M18 12h2M12 4v2M12 18v2M6 6l1.5 1.5M16.5 16.5 18 18M18 6l-1.5 1.5M7.5 16.5 6 18"/>',
   lock:'<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
   unlock:'<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 7.5-2"/>',
   locate:'<path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Z"/><circle cx="12" cy="10" r="2.5"/>',
   sound:'<path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M16 9a4 4 0 0 1 0 6"/>',
-  total:'<rect x="5" y="2" width="14" height="20" rx="3"/>',
-  active:'<path d="M20 6 9 17l-5-5"/>',
-  overdue:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
-  locked:'<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
-  bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/>',
   check:'<path d="M20 6 9 17l-5-5"/>',
   warn:'<path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/>',
 };
-const svg = (p,w=2)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const svg=(p)=>`<svg viewBox="0 0 24 24">${p}</svg>`;
 
-/* ─────────────── Nav ─────────────── */
-const NAV = [
-  {group:'nMain', items:[
-    {id:'dashboard', ico:'dash'}, {id:'devices', ico:'devices', badge:()=>DEVICES.filter(d=>d.loan==='overdue').length},
-  ]},
-  {group:'nOps', items:[
-    {id:'enroll', ico:'enroll'}, {id:'audit', ico:'audit'}, {id:'settings', ico:'settings'},
-  ]},
+/* ─── Nav ─── */
+const NAV=[
+  {id:'dashboard',ico:'dash'},
+  {id:'devices',ico:'devices',badge:()=>DEVICES.filter(d=>d.loan==='overdue').length},
+  {id:'enroll',ico:'enroll'},
+  {id:'audit',ico:'audit'},
+  {id:'settings',ico:'settings'},
 ];
-let route = 'dashboard';
-let deviceFilter = 'filterAll';
+let route='dashboard', deviceFilter='filterAll', currentDevice=null;
 
 function renderNav(){
-  const nav = document.getElementById('nav');
-  nav.innerHTML = NAV.map(g=>`
-    <div class="nav-label">${t(g.group)}</div>
-    ${g.items.map(it=>{
-      const badge = it.badge && it.badge()>0 ? `<span class="nav-badge">${it.badge()}</span>`:'';
-      return `<a class="nav-item ${route===it.id?'active':''}" data-route="${it.id}">
-        ${svg(IC[it.ico])}<span>${t(it.id)}</span>${badge}</a>`;
-    }).join('')}
-  `).join('');
-  nav.querySelectorAll('[data-route]').forEach(el=>
-    el.onclick=()=>{route=el.dataset.route; render();});
+  const nav=document.getElementById('nav');
+  nav.innerHTML=NAV.map(it=>{
+    const b=it.badge&&it.badge()>0?`<span class="bg">${it.badge()}</span>`:'';
+    return `<div class="ri ${route===it.id||(route==='detail'&&it.id==='devices')?'on':''}" data-route="${it.id}">${svg(IC[it.ico])}<span>${t(it.id)}</span>${b}</div>`;
+  }).join('');
+  nav.querySelectorAll('[data-route]').forEach(el=>el.onclick=()=>{route=el.dataset.route;render();});
 }
 
-/* ─────────────── Helpers ─────────────── */
-function loanBadge(s){
-  const m={active:['b-green','stActive'],overdue:['b-red','stOverdue'],paid:['b-gray','stPaid']};
-  const[c,k]=m[s];return`<span class="badge ${c}"><span class="dot"></span>${t(k)}</span>`;
-}
-function mdmBadge(s){
-  const m={enrolled:['b-blue','stEnrolled'],pending:['b-amber','stPending'],released:['b-gray','stReleased']};
-  const[c,k]=m[s];return`<span class="badge ${c}"><span class="dot"></span>${t(k)}</span>`;
-}
-function lockBadge(s){
-  return s==='locked'
-    ?`<span class="badge b-red"><span class="dot"></span>${t('lkLocked')}</span>`
-    :`<span class="badge b-green"><span class="dot"></span>${t('lkUnlocked')}</span>`;
-}
-function toast(msg){
-  const el=document.createElement('div');
-  el.style.cssText=`position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
-    background:var(--panel-3);border:1px solid var(--border-2);color:var(--text);
-    padding:12px 20px;border-radius:12px;font-size:13.5px;font-weight:600;z-index:200;
-    box-shadow:var(--shadow);display:flex;gap:9px;align-items:center;animation:fade .2s`;
-  el.innerHTML=`<span style="color:var(--green)">${svg(IC.check)}</span>${msg}`;
-  el.querySelector('svg').style.cssText='width:17px;height:17px';
-  document.body.appendChild(el);
-  setTimeout(()=>{el.style.opacity='0';el.style.transition='.3s';setTimeout(()=>el.remove(),300);},2200);
-}
+/* ─── Helpers ─── */
+function loanBadge(s){const m={active:['b-green','stActive'],overdue:['b-red','stOverdue'],paid:['b-gray','stPaid']};const[c,k]=m[s];return`<span class="badge ${c}"><span class="dot"></span>${t(k)}</span>`;}
+function mdmBadge(s){const m={enrolled:['b-steel','stEnrolled'],pending:['b-amber','stPending'],released:['b-gray','stReleased']};const[c,k]=m[s];return`<span class="badge ${c}"><span class="dot"></span>${t(k)}</span>`;}
+function lockBadge(s){return s==='locked'?`<span class="badge b-red"><span class="dot"></span>${t('lkLocked')}</span>`:`<span class="badge b-green"><span class="dot"></span>${t('lkUnlocked')}</span>`;}
+function fmtAgo(sec){if(sec<60)return t('now');if(sec<3600)return Math.floor(sec/60)+' '+t('min')+' '+t('ago');return Math.floor(sec/3600)+' '+t('hr')+' '+t('ago');}
+function evMap(a){const m={evLock:['--red','lock'],evUnlock:['--green','unlock'],evEnroll:['--steel','enroll'],evLocate:['--amber','locate']};return m[a];}
+function toast(msg){const el=document.createElement('div');el.style.cssText=`position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--panel-3);border:1px solid var(--border-2);color:var(--text);padding:11px 18px;border-radius:10px;font-size:12.5px;font-weight:650;z-index:200;box-shadow:var(--shadow);display:flex;gap:8px;align-items:center;animation:fade .2s`;el.innerHTML=`<span style="color:var(--green);display:grid">${svg(IC.check)}</span>${msg}`;el.querySelector('svg').style.cssText='width:16px;height:16px';document.body.appendChild(el);setTimeout(()=>{el.style.opacity='0';el.style.transition='.3s';setTimeout(()=>el.remove(),300);},2200);}
 
-/* ─────────────── Views ─────────────── */
+/* ─── Views ─── */
 function viewDashboard(){
-  const total=DEVICES.length, active=DEVICES.filter(d=>d.loan==='active').length,
-    overdue=DEVICES.filter(d=>d.loan==='overdue').length,
-    locked=DEVICES.filter(d=>d.lock==='locked').length;
+  const total=DEVICES.length,active=DEVICES.filter(d=>d.loan==='active').length,over=DEVICES.filter(d=>d.loan==='overdue').length,locked=DEVICES.filter(d=>d.lock==='locked').length,sup=DEVICES.filter(d=>d.mdm==='enrolled').length;
   const kpis=[
-    {ico:'total',c:'--blue',label:'kTotal',val:total,delta:'+2',up:true},
-    {ico:'active',c:'--green',label:'kActive',val:active,delta:'+1',up:true},
-    {ico:'overdue',c:'--amber',label:'kOverdue',val:overdue,delta:'+1',up:false},
-    {ico:'locked',c:'--red',label:'kLocked',val:locked,delta:'0',up:true},
+    {cls:'',label:'kTotal',val:total,sub:t('kSup')+': '+sup},
+    {cls:'g',label:'kActive',val:active,sub:t('kSched')},
+    {cls:'a',label:'kOverdue',val:over,sub:t('kOver3')},
+    {cls:'r',label:'kLocked',val:locked,sub:t('kLostOn')},
   ];
-  const attention=DEVICES.filter(d=>d.loan==='overdue');
-  return `<div class="fade">
-    <div class="kpi-grid">${kpis.map(k=>`
-      <div class="kpi">
-        <div class="kpi-top">
-          <div class="kpi-ico" style="background:color-mix(in srgb,var(${k.c}) 15%,transparent);color:var(${k.c})">${svg(IC[k.ico])}</div>
-        </div>
-        <div class="kpi-label">${t(k.label)}</div>
-        <div class="kpi-val">${k.val}</div>
-        <div class="kpi-delta ${k.up?'up':'down'}">${k.delta} · 30${t('min')==='min'?'d':'d'}</div>
-      </div>`).join('')}
-    </div>
-    <div class="grid-2">
+  const q=DEVICES.filter(d=>d.loan==='overdue');
+  return `<div class="fade" style="display:flex;flex-direction:column;gap:14px">
+    <div class="kpis">${kpis.map(k=>`<div class="kpi ${k.cls}"><div class="kl">${t(k.label)}</div><div class="kv mono">${k.val}</div><div class="kd">${k.sub}</div></div>`).join('')}</div>
+    <div class="row">
       <div class="panel">
-        <div class="panel-h"><h3>${t('recentDevices')}</h3>
-          <a class="link" data-goto="devices">${t('viewAll')} →</a></div>
-        <div class="panel-b">
-          <table><thead><tr>
-            <th>${t('thCustomer')}</th><th>${t('thDevice')}</th><th>${t('thLoan')}</th><th>${t('thLock')}</th>
-          </tr></thead><tbody>
-          ${attention.map(d=>`<tr data-dev="${d.id}">
-            <td><div class="cust"><div class="avatar">${d.initials}</div>
-              <div><div class="cust-name">${d.name}</div>
-              <div class="cust-meta">${d.daysOverdue} ${t('daysOverdue')}</div></div></div></td>
-            <td>${d.model}<div class="cust-meta mono">${d.contract}</div></td>
-            <td>${loanBadge(d.loan)}</td><td>${lockBadge(d.lock)}</td>
-          </tr>`).join('')}
-          </tbody></table>
-        </div>
+        <div class="ph"><h3>${t('queue')} <span>· ${q.length}</span></h3><a class="lnk" data-goto="devices">${t('viewAll')} →</a></div>
+        <table><thead><tr><th>${t('thCustomer')}</th><th>${t('thDevice')}</th><th>${t('thImei')}</th><th>${t('thLock')}</th></tr></thead><tbody>
+        ${q.map(d=>`<tr data-dev="${d.id}"><td><div class="cn">${d.name}</div><div class="cm mono">${d.contract}</div></td><td>${d.model}</td><td class="mono cm">${d.imei}</td><td>${lockBadge(d.lock)}</td></tr>`).join('')}
+        </tbody></table>
       </div>
       <div class="panel">
-        <div class="panel-h"><h3>${t('eventFeed')}</h3></div>
-        <div class="feed">${AUDIT.map(a=>{
-          const map={evLock:['--red','lock'],evUnlock:['--green','unlock'],evEnroll:['--blue','enroll'],evLocate:['--amber','locate']};
-          const[c,ic]=map[a.act];
-          return `<div class="ev">
-            <div class="ev-ico" style="background:color-mix(in srgb,var(${c}) 15%,transparent);color:var(${c})">${svg(IC[ic])}</div>
-            <div><div class="ev-txt"><b>${a.who}</b> ${t(a.act)} · ${a.dev}</div>
-            <div class="ev-time">${fmtAgo(a.t)}</div></div></div>`;
-        }).join('')}</div>
+        <div class="ph"><h3>${t('eventFeed')}</h3></div>
+        <div class="feed">${AUDIT.map(a=>{const[c,ic]=evMap(a.act);return`<div class="ev"><div class="ev-ico" style="background:color-mix(in srgb,var(${c}) 15%,transparent);color:var(${c})">${svg(IC[ic])}</div><div><div class="ev-txt"><b>${a.who}</b> ${t(a.act)}</div><div class="ev-time">${a.dev} · ${fmtAgo(a.t)}</div></div></div>`;}).join('')}</div>
       </div>
     </div>
   </div>`;
 }
-
-function fmtAgo(sec){
-  if(sec<60)return t('now');
-  if(sec<3600)return Math.floor(sec/60)+' '+t('min')+' '+t('ago');
-  return Math.floor(sec/3600)+' '+t('hr')+' '+t('ago');
-}
-
 function viewDevices(){
   const filters=['filterAll','filterOverdue','filterLocked','filterActive'];
   let list=DEVICES;
   if(deviceFilter==='filterOverdue')list=DEVICES.filter(d=>d.loan==='overdue');
   if(deviceFilter==='filterLocked')list=DEVICES.filter(d=>d.lock==='locked');
   if(deviceFilter==='filterActive')list=DEVICES.filter(d=>d.loan==='active');
-  return `<div class="fade">
-    <div class="toolbar">${filters.map(f=>
-      `<button class="chip ${deviceFilter===f?'on':''}" data-filter="${f}">${t(f)}</button>`).join('')}</div>
-    <div class="panel"><div class="panel-b">
-      <table><thead><tr>
-        <th>${t('thCustomer')}</th><th>${t('thDevice')}</th><th>${t('thImei')}</th>
-        <th>${t('thLoan')}</th><th>${t('thMdm')}</th><th>${t('thLock')}</th>
-      </tr></thead><tbody>
-      ${list.map(d=>`<tr data-dev="${d.id}">
-        <td><div class="cust"><div class="avatar">${d.initials}</div>
-          <div><div class="cust-name">${d.name}</div><div class="cust-meta">${d.phone}</div></div></div></td>
-        <td>${d.model}<div class="cust-meta mono">${d.contract}</div></td>
-        <td class="mono">${d.imei}</td>
-        <td>${loanBadge(d.loan)}</td><td>${mdmBadge(d.mdm)}</td><td>${lockBadge(d.lock)}</td>
-      </tr>`).join('')}
-      </tbody></table>
+  return `<div class="fade" style="display:flex;flex-direction:column;gap:14px">
+    <div class="toolbar">${filters.map(f=>`<button class="chip ${deviceFilter===f?'on':''}" data-filter="${f}">${t(f)}</button>`).join('')}</div>
+    <div class="panel"><table><thead><tr><th>${t('thCustomer')}</th><th>${t('thDevice')}</th><th>${t('thImei')}</th><th>${t('thLoan')}</th><th>${t('thMdm')}</th><th>${t('thLock')}</th></tr></thead><tbody>
+    ${list.map(d=>`<tr data-dev="${d.id}"><td><div class="cn">${d.name}</div><div class="cm">${d.phone}</div></td><td>${d.model}<div class="cm mono">${d.contract}</div></td><td class="mono cm">${d.imei}</td><td>${loanBadge(d.loan)}${d.daysOverdue>0?` <span class="over${d.daysOverdue>=20?' hi':''} mono" style="font-size:11px">${d.daysOverdue}д</span>`:''}</td><td>${mdmBadge(d.mdm)}</td><td>${lockBadge(d.lock)}</td></tr>`).join('')}
+    </tbody></table></div>
+  </div>`;
+}
+function viewDeviceDetail(d){
+  const rows=[['fModel',d.model],['fSerial',`<span class="mono">${d.serial}</span>`],['fImei',`<span class="mono">${d.imei}</span>`],['fOs',d.ios],['fSup','Supervised ✓'],['fEnroll',mdmBadge(d.mdm)],['fLastSeen',d.lastSeen]];
+  const lrows=[['fContract',`<span class="mono">${d.contract}</span>`],['fAmount',`<span class="mono">${d.amount}</span> сум`],['fMonthly',`<span class="mono">${d.monthly}</span> сум`],['fPaid',`<span class="mono">${d.paid}</span> сум`],['fNext',`<span class="mono">${d.next}</span>`],['fDays',d.daysOverdue>0?`<span class="over${d.daysOverdue>=20?' hi':''} mono">${d.daysOverdue} ${t('daysOverdue')}</span>`:'—']];
+  const isLocked=d.lock==='locked';
+  return `<div class="fade" style="display:flex;flex-direction:column;gap:14px">
+    <button class="btn btn-ghost" data-goto="devices" style="align-self:flex-start">${t('btnBack')}</button>
+    <div class="detail">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="panel">
+          <div class="hero"><div class="phone"></div><div><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span style="font-size:17px;font-weight:700">${d.name}</span>${lockBadge(d.lock)}</div><div class="cm" style="margin-top:3px">${d.model} · ${d.phone}</div></div></div>
+          <div class="ph"><h3>${t('devInfo')}</h3></div>
+          ${rows.map(([k,v])=>`<div class="field"><span class="field-l">${t(k)}</span><span class="field-v">${v}</span></div>`).join('')}
+        </div>
+        <div class="panel"><div class="ph"><h3>${t('loanInfo')}</h3>${loanBadge(d.loan)}</div>${lrows.map(([k,v])=>`<div class="field"><span class="field-l">${t(k)}</span><span class="field-v">${v}</span></div>`).join('')}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="panel acard">
+          <h4>${t('actionsTitle')}</h4><p>${t('actionsHint')}</p>
+          <div class="alist">
+            ${isLocked?`<button class="btn btn-cy" data-act="unlock">${svg(IC.unlock)}${t('btnUnlock')}</button>`:`<button class="btn btn-red" data-act="lock">${svg(IC.lock)}${t('btnLock')}</button>`}
+            <div class="two"><button class="btn btn-ghost" data-act="locate">${svg(IC.locate)}${t('btnLocate')}</button><button class="btn btn-ghost" data-act="sound">${svg(IC.sound)}${t('btnSound')}</button></div>
+          </div>
+        </div>
+        <div class="panel"><div class="ph"><h3>${t('cmdHistory')}</h3></div><div class="feed">${AUDIT.filter(a=>a.dev===d.name).map(a=>{const[c,ic]=evMap(a.act);return`<div class="ev"><div class="ev-ico" style="background:color-mix(in srgb,var(${c}) 15%,transparent);color:var(${c})">${svg(IC[ic])}</div><div><div class="ev-txt">${t(a.act)}</div><div class="ev-time">${a.who} · ${fmtAgo(a.t)}</div></div></div>`;}).join('')||`<div class="empty">—</div>`}</div></div>
+      </div>
+    </div>
+  </div>`;
+}
+function viewEnroll(){
+  return `<div class="fade" style="max-width:660px;display:flex;flex-direction:column;gap:14px">
+    <div class="panel"><div class="ph"><h3>${t('enrollStep')}</h3></div><div class="steps">
+      ${[t('eStep1'),t('eStep2'),t('eStep3'),t('eStep4')].map((s,i)=>`<div class="step"><span class="stepn">${i+1}</span>${s}</div>`).join('')}
+    </div></div>
+    <div class="panel"><div style="padding:18px">
+      <div class="fgrid">
+        <div class="form-row"><label>${t('eCustomer')}</label><input placeholder="Фамилия Имя Отчество"></div>
+        <div class="form-row"><label>${t('ePhone')}</label><input placeholder="+998 __ ___-__-__"></div>
+        <div class="form-row"><label>${t('eContract')}</label><input class="mono" placeholder="GO-2026-____"></div>
+        <div class="form-row"><label>${t('eModel')}</label><select><option>iPhone 15</option><option>iPhone 15 Pro</option><option>iPhone 14</option><option>iPhone 13</option></select></div>
+        <div class="form-row"><label>${t('eSerial')}</label><input class="mono" placeholder="XXXXXXXXXX"></div>
+        <div class="form-row"><label>${t('eImei')}</label><input class="mono" placeholder="35 XXXXXX XXXXXX X"></div>
+      </div>
+      <div style="display:flex;gap:9px;margin-top:6px"><button class="btn btn-ghost" data-act="supcheck">${svg(IC.check)}${t('eCheck')}</button><button class="btn btn-cy" data-act="register">${t('eRegister')}</button></div>
     </div></div>
   </div>`;
 }
-
-let currentDevice=null;
-function viewDeviceDetail(d){
-  const rows=[
-    ['fModel',d.model],['fSerial',`<span class="mono">${d.serial}</span>`],
-    ['fImei',`<span class="mono">${d.imei}</span>`],['fOs',d.ios],
-    ['fSup','Supervised ✓'],['fEnroll',mdmBadge(d.mdm)],['fLastSeen',d.lastSeen]
-  ];
-  const loanRows=[
-    ['fContract',`<span class="mono">${d.contract}</span>`],['fAmount',d.amount+' сум'],
-    ['fMonthly',d.monthly+' сум'],['fPaid',d.paid+' сум'],['fNext',d.next],
-    ['fDays', d.daysOverdue>0?`<span style="color:var(--red)">${d.daysOverdue} ${t('daysOverdue')}</span>`:'—']
-  ];
-  const isLocked=d.lock==='locked';
-  return `<div class="fade">
-    <button class="btn btn-ghost" data-goto="devices" style="margin-bottom:16px">${t('btnBack')}</button>
-    <div class="detail">
-      <div>
-        <div class="panel">
-          <div class="dev-hero">
-            <div class="phone"></div>
-            <div style="flex:1">
-              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-                <h3 style="font-size:19px">${d.name}</h3>${lockBadge(d.lock)}</div>
-              <div class="cust-meta" style="margin-top:4px">${d.model} · ${d.phone}</div>
-            </div>
-          </div>
-          <div class="panel-h" style="border-top:1px solid var(--border)"><h3>${t('devInfo')}</h3></div>
-          ${rows.map(([k,v])=>`<div class="field"><span class="field-l">${t(k)}</span><span class="field-v">${v}</span></div>`).join('')}
-        </div>
-        <div class="panel" style="margin-top:16px">
-          <div class="panel-h"><h3>${t('loanInfo')}</h3>${loanBadge(d.loan)}</div>
-          ${loanRows.map(([k,v])=>`<div class="field"><span class="field-l">${t(k)}</span><span class="field-v">${v}</span></div>`).join('')}
-        </div>
-      </div>
-      <div>
-        <div class="panel action-card">
-          <h4>${t('actionsTitle')}</h4>
-          <p>${t('actionsHint')}</p>
-          <div class="action-list">
-            ${isLocked
-              ?`<button class="btn btn-gold" data-act="unlock">${svg(IC.unlock)}${t('btnUnlock')}</button>`
-              :`<button class="btn btn-red" data-act="lock">${svg(IC.lock)}${t('btnLock')}</button>`}
-            <button class="btn btn-ghost" data-act="locate">${svg(IC.locate)}${t('btnLocate')}</button>
-            <button class="btn btn-ghost" data-act="sound">${svg(IC.sound)}${t('btnSound')}</button>
-          </div>
-        </div>
-        <div class="panel" style="margin-top:16px">
-          <div class="panel-h"><h3>${t('cmdHistory')}</h3></div>
-          <div class="feed">${AUDIT.filter(a=>a.dev===d.name).map(a=>{
-            const map={evLock:['--red','lock'],evUnlock:['--green','unlock'],evEnroll:['--blue','enroll'],evLocate:['--amber','locate']};
-            const[c,ic]=map[a.act];
-            return `<div class="ev"><div class="ev-ico" style="background:color-mix(in srgb,var(${c}) 15%,transparent);color:var(${c})">${svg(IC[ic])}</div>
-              <div><div class="ev-txt">${t(a.act)}</div><div class="ev-time">${a.who} · ${fmtAgo(a.t)}</div></div></div>`;
-          }).join('')||`<div class="empty" style="padding:28px">—</div>`}</div>
-        </div>
-      </div>
-    </div>
-  </div>`;
-}
-
-function viewEnroll(){
-  return `<div class="fade" style="max-width:640px">
-    <div class="panel" style="padding:22px 24px;margin-bottom:16px">
-      <h3 style="font-size:15px;margin-bottom:14px">${t('enrollStep')}</h3>
-      ${[t('eStep1'),t('eStep2'),t('eStep3'),t('eStep4')].map((s,i)=>`
-        <div style="display:flex;gap:12px;padding:9px 0;align-items:center;color:var(--muted);font-size:13px">
-          <span style="width:24px;height:24px;border-radius:7px;background:var(--gold-soft);color:var(--gold);
-            display:grid;place-items:center;font-weight:700;flex-shrink:0">${i+1}</span>
-          ${s.replace(/^\d+\.\s*/,'')}</div>`).join('')}
-    </div>
-    <div class="panel" style="padding:22px 24px">
-      <div class="settings-grid">
-        <div class="form-row"><label>${t('eCustomer')}</label><input placeholder="Фамилия Имя Отчество"></div>
-        <div class="form-row"><label>${t('ePhone')}</label><input placeholder="+998 __ ___-__-__"></div>
-        <div class="form-row"><label>${t('eContract')}</label><input placeholder="GO-2026-____"></div>
-        <div class="form-row"><label>${t('eModel')}</label>
-          <select><option>iPhone 15</option><option>iPhone 15 Pro</option><option>iPhone 14</option><option>iPhone 13</option></select></div>
-        <div class="form-row"><label>${t('eSerial')}</label><input placeholder="XXXXXXXXXX"></div>
-        <div class="form-row"><label>${t('eImei')}</label><input placeholder="35 XXXXXX XXXXXX X"></div>
-      </div>
-      <div style="display:flex;gap:10px;margin-top:8px">
-        <button class="btn btn-ghost" onclick="toast('Supervision: ✓ OK')">${svg(IC.check)}${t('eCheck')}</button>
-        <button class="btn btn-gold" data-act="register">${t('eRegister')}</button>
-      </div>
-    </div>
-  </div>`;
-}
-
 function viewAudit(){
-  return `<div class="fade"><div class="panel"><div class="panel-b">
-    <table><thead><tr>
-      <th>${t('thWho')}</th><th>${t('thAction')}</th><th>${t('thDevice')}</th><th>${t('thWhen')}</th>
-    </tr></thead><tbody>
-    ${AUDIT.map(a=>`<tr style="cursor:default">
-      <td><div class="cust"><div class="avatar" style="width:30px;height:30px;font-size:11px">${a.who.split(' ').map(x=>x[0]).join('')}</div>
-        <span class="cust-name">${a.who}</span></div></td>
-      <td>${t(a.act)}</td><td>${a.dev}</td><td class="cust-meta">${fmtAgo(a.t)}</td>
-    </tr>`).join('')}
-    </tbody></table>
-  </div></div></div>`;
+  return `<div class="fade"><div class="panel"><table><thead><tr><th>${t('thWho')}</th><th>${t('thAction')}</th><th>${t('thDevice')}</th><th>${t('thWhen')}</th></tr></thead><tbody>
+  ${AUDIT.map(a=>`<tr style="cursor:default"><td class="cn">${a.who}</td><td>${t(a.act)}</td><td>${a.dev}</td><td class="cm">${fmtAgo(a.t)}</td></tr>`).join('')}
+  </tbody></table></div></div>`;
 }
-
 function viewSettings(){
-  return `<div class="fade"><div class="settings-grid">
-    <div class="panel">
-      <div class="panel-h"><h3>${t('setMdm')}</h3></div>
-      <div class="set-item" style="display:flex;justify-content:space-between;align-items:center">
-        <div><div style="font-weight:600">${t('setProvider')}</div><div class="cust-meta">Mosyle Business</div></div>
-        <span class="badge b-gray">API</span></div>
-      <div class="set-item" style="display:flex;justify-content:space-between;align-items:center">
-        <div><div style="font-weight:600">${t('setStatus')}</div><div class="cust-meta mono">api.mosyle.com</div></div>
-        <span class="badge b-green"><span class="dot"></span>${t('connected')}</span></div>
+  const lightOn=document.documentElement.dataset.theme==='light';
+  return `<div class="fade"><div class="fgrid">
+    <div class="panel"><div class="ph"><h3>${t('setMdm')}</h3></div>
+      <div class="setrow"><div><div style="font-weight:650">${t('setProvider')}</div><div class="cm">Mosyle Business</div></div><span class="badge b-gray">API</span></div>
+      <div class="setrow"><div><div style="font-weight:650">${t('setStatus')}</div><div class="cm mono">api.mosyle.com</div></div><span class="badge b-green"><span class="dot"></span>${t('connected')}</span></div>
     </div>
-    <div class="panel">
-      <div class="panel-h"><h3>${t('setRoles')}</h3></div>
-      <div class="set-item" style="display:flex;justify-content:space-between;align-items:center">
-        <div><div style="font-weight:600">${t('setLang')}</div><div class="cust-meta">RU / UZ</div></div>
-        <div class="seg"><button class="${lang==='ru'?'on':''}" onclick="setLang('ru')">RU</button><button class="${lang==='uz'?'on':''}" onclick="setLang('uz')">UZ</button></div></div>
-      <div class="set-item" style="display:flex;justify-content:space-between;align-items:center">
-        <div><div style="font-weight:600">${t('setTheme')}</div><div class="cust-meta">Dark / Light</div></div>
-        <div class="toggle ${document.documentElement.dataset.theme!=='light'?'on':''}" onclick="toggleTheme()"></div></div>
+    <div class="panel"><div class="ph"><h3>${t('setRoles')}</h3></div>
+      <div class="setrow"><div><div style="font-weight:650">${t('setLang')}</div><div class="cm">RU / UZ</div></div><div class="seg"><button class="${lang==='ru'?'on':''}" onclick="setLang('ru')">RU</button><button class="${lang==='uz'?'on':''}" onclick="setLang('uz')">UZ</button></div></div>
+      <div class="setrow"><div><div style="font-weight:650">${t('setTheme')}</div><div class="cm">Dark / Light</div></div><div class="toggle ${!lightOn?'on':''}" onclick="toggleTheme()"></div></div>
     </div>
-    <div class="panel" style="grid-column:1/-1">
-      <div class="panel-h"><h3>${t('setTemplate')}</h3></div>
-      <div style="padding:18px 20px">
-        <div class="form-row"><label>${t('lockMsgLabel')}</label>
-          <textarea>Устройство заблокировано в связи с просрочкой платежа. Для разблокировки обратитесь в Golden One.</textarea></div>
-        <div class="form-row"><label>${t('lockPhoneLabel')}</label><input value="+998 71 200-00-00"></div>
-      </div>
-    </div>
+    <div class="panel" style="grid-column:1/-1"><div class="ph"><h3>${t('setTemplate')}</h3></div><div style="padding:16px 18px">
+      <div class="form-row"><label>${t('lockMsgLabel')}</label><textarea>Устройство заблокировано в связи с просрочкой платежа. Для разблокировки обратитесь в Golden One.</textarea></div>
+      <div class="form-row"><label>${t('lockPhoneLabel')}</label><input class="mono" value="+998 71 200-00-00"></div>
+    </div></div>
   </div></div>`;
 }
 
-/* ─────────────── Modals ─────────────── */
+/* ─── Modals ─── */
 function openLock(d){
-  const root=document.getElementById('modalRoot');
-  root.innerHTML=`<div class="overlay" id="ov">
-    <div class="modal">
-      <div class="modal-h">
-        <div class="modal-ico" style="background:var(--red-soft);color:var(--red)">${svg(IC.lock)}</div>
-        <div><h3>${t('lockTitle')}</h3><p>${t('lockSub')} · ${d.name}</p></div>
-      </div>
-      <div class="modal-b">
-        <div class="warn">${svg(IC.warn)}<span>${t('lockWarn')}</span></div>
-        <div class="form-row"><label>${t('lockReason')}</label>
-          <select><option>${t('reasonOverdue')}</option><option>${t('reasonFraud')}</option><option>${t('reasonOther')}</option></select></div>
-        <div class="form-row"><label>${t('lockMsgLabel')}</label>
-          <textarea id="lockMsg">Устройство заблокировано в связи с просрочкой платежа. Для разблокировки обратитесь в Golden One.</textarea></div>
-        <div class="form-row"><label>${t('lockPhoneLabel')}</label><input id="lockPhone" value="+998 71 200-00-00"></div>
-        <div class="lostpreview">
-          <div class="lp-lock">${svg(IC.lock)}</div>
-          <div class="lp-title">${t('previewTitle')}</div>
-          <div class="lp-msg" id="prevMsg">Устройство заблокировано в связи с просрочкой платежа.</div>
-          <div class="lp-phone" id="prevPhone">+998 71 200-00-00</div>
-        </div>
-      </div>
-      <div class="modal-f">
-        <button class="btn btn-ghost" onclick="closeModal()">${t('cancel')}</button>
-        <button class="btn btn-red" id="doLock">${svg(IC.lock)}${t('confirmLock')}</button>
-      </div>
-    </div></div>`;
-  const msg=document.getElementById('lockMsg'), ph=document.getElementById('lockPhone');
-  const sync=()=>{document.getElementById('prevMsg').textContent=msg.value;
-    document.getElementById('prevPhone').textContent=ph.value;};
-  msg.oninput=sync; ph.oninput=sync;
-  document.getElementById('doLock').onclick=()=>{
-    d.lock='locked'; AUDIT.unshift({who:'Азиз Каримов',act:'evLock',dev:d.name,t:0});
-    closeModal(); render(); toast(t('toastLocked'));
-  };
+  document.getElementById('modalRoot').innerHTML=`<div class="overlay" id="ov"><div class="modal">
+    <div class="modal-h"><div class="modal-ico" style="background:var(--red-soft);color:var(--red)">${svg(IC.lock)}</div><div><h3>${t('lockTitle')}</h3><p>${t('lockSub')} · ${d.name}</p></div></div>
+    <div class="modal-b">
+      <div class="warn">${svg(IC.warn)}<span>${t('lockWarn')}</span></div>
+      <div class="form-row"><label>${t('lockReason')}</label><select><option>${t('reasonOverdue')}</option><option>${t('reasonFraud')}</option><option>${t('reasonOther')}</option></select></div>
+      <div class="form-row"><label>${t('lockMsgLabel')}</label><textarea id="lockMsg">Устройство заблокировано в связи с просрочкой платежа. Для разблокировки обратитесь в Golden One.</textarea></div>
+      <div class="form-row"><label>${t('lockPhoneLabel')}</label><input class="mono" id="lockPhone" value="+998 71 200-00-00"></div>
+      <div class="lost"><div class="lk">${svg(IC.lock)}</div><div class="lt">${t('previewTitle')}</div><div class="lm" id="prevMsg">Устройство заблокировано в связи с просрочкой платежа.</div><div class="lp mono" id="prevPhone">+998 71 200-00-00</div></div>
+    </div>
+    <div class="modal-f"><button class="btn btn-ghost" onclick="closeModal()">${t('cancel')}</button><button class="btn btn-red" id="doLock">${svg(IC.lock)}${t('confirmLock')}</button></div>
+  </div></div>`;
+  const msg=document.getElementById('lockMsg'),ph=document.getElementById('lockPhone');
+  const sync=()=>{document.getElementById('prevMsg').textContent=msg.value;document.getElementById('prevPhone').textContent=ph.value;};
+  msg.oninput=sync;ph.oninput=sync;
+  document.getElementById('doLock').onclick=()=>{d.lock='locked';AUDIT.unshift({who:'Азиз Каримов',act:'evLock',dev:d.name,t:0});closeModal();render();toast(t('toastLocked'));};
   document.getElementById('ov').onclick=e=>{if(e.target.id==='ov')closeModal();};
 }
 function openUnlock(d){
-  const root=document.getElementById('modalRoot');
-  root.innerHTML=`<div class="overlay" id="ov">
-    <div class="modal">
-      <div class="modal-h">
-        <div class="modal-ico" style="background:var(--green-soft);color:var(--green)">${svg(IC.unlock)}</div>
-        <div><h3>${t('unlockTitle')}</h3><p>${t('unlockSub')} · ${d.name}</p></div>
-      </div>
-      <div class="modal-b">
-        <label style="display:flex;gap:11px;align-items:flex-start;padding:13px;border:1px solid var(--border);
-          border-radius:12px;cursor:pointer;font-size:13px">
-          <input type="checkbox" id="ck" style="margin-top:2px;width:16px;height:16px;accent-color:var(--gold)">
-          <span>${t('unlockConfirm')}</span></label>
-      </div>
-      <div class="modal-f">
-        <button class="btn btn-ghost" onclick="closeModal()">${t('cancel')}</button>
-        <button class="btn btn-gold" id="doUnlock" style="opacity:.5;pointer-events:none">${svg(IC.unlock)}${t('confirmUnlock')}</button>
-      </div>
-    </div></div>`;
-  const ck=document.getElementById('ck'), btn=document.getElementById('doUnlock');
+  document.getElementById('modalRoot').innerHTML=`<div class="overlay" id="ov"><div class="modal">
+    <div class="modal-h"><div class="modal-ico" style="background:var(--green-soft);color:var(--green)">${svg(IC.unlock)}</div><div><h3>${t('unlockTitle')}</h3><p>${t('unlockSub')} · ${d.name}</p></div></div>
+    <div class="modal-b"><label style="display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:12.5px"><input type="checkbox" id="ck" style="margin-top:2px;width:15px;height:15px;accent-color:var(--cy)"><span>${t('unlockConfirm')}</span></label></div>
+    <div class="modal-f"><button class="btn btn-ghost" onclick="closeModal()">${t('cancel')}</button><button class="btn btn-cy" id="doUnlock" style="opacity:.5;pointer-events:none">${svg(IC.unlock)}${t('confirmUnlock')}</button></div>
+  </div></div>`;
+  const ck=document.getElementById('ck'),btn=document.getElementById('doUnlock');
   ck.onchange=()=>{btn.style.opacity=ck.checked?'1':'.5';btn.style.pointerEvents=ck.checked?'auto':'none';};
-  btn.onclick=()=>{d.lock='unlocked'; AUDIT.unshift({who:'Азиз Каримов',act:'evUnlock',dev:d.name,t:0});
-    closeModal(); render(); toast(t('toastUnlocked'));};
+  btn.onclick=()=>{d.lock='unlocked';AUDIT.unshift({who:'Азиз Каримов',act:'evUnlock',dev:d.name,t:0});closeModal();render();toast(t('toastUnlocked'));};
   document.getElementById('ov').onclick=e=>{if(e.target.id==='ov')closeModal();};
 }
 function closeModal(){document.getElementById('modalRoot').innerHTML='';}
 
-/* ─────────────── Render ─────────────── */
-const TITLES={dashboard:['dashboard','subDash'],devices:['devices','subDevices'],
-  enroll:['enroll','subEnroll'],audit:['audit','subAudit'],settings:['settings','subSettings'],
-  detail:['devices','subDevices']};
+/* ─── Render ─── */
+const TITLES={dashboard:['dashboard','subDash'],devices:['devices','subDevices'],detail:['devices','subDevices'],enroll:['enroll','subEnroll'],audit:['audit','subAudit'],settings:['settings','subSettings']};
 function render(){
   renderNav();
-  const [tk,sk]=TITLES[route]||TITLES.dashboard;
+  const[tk,sk]=TITLES[route]||TITLES.dashboard;
   document.getElementById('pageTitle').textContent=route==='detail'?currentDevice.name:t(tk);
   document.getElementById('pageSub').textContent=t(sk);
   const v=document.getElementById('view');
-  if(route==='dashboard')v.innerHTML=viewDashboard();
-  else if(route==='devices')v.innerHTML=viewDevices();
-  else if(route==='detail')v.innerHTML=viewDeviceDetail(currentDevice);
-  else if(route==='enroll')v.innerHTML=viewEnroll();
-  else if(route==='audit')v.innerHTML=viewAudit();
-  else if(route==='settings')v.innerHTML=viewSettings();
+  v.innerHTML=({dashboard:viewDashboard,devices:viewDevices,detail:()=>viewDeviceDetail(currentDevice),enroll:viewEnroll,audit:viewAudit,settings:viewSettings}[route])();
   bind();
 }
 function bind(){
   const v=document.getElementById('view');
-  v.querySelectorAll('[data-dev]').forEach(el=>el.onclick=()=>{
-    currentDevice=DEVICES.find(x=>x.id===el.dataset.dev); route='detail'; render();});
-  v.querySelectorAll('[data-goto]').forEach(el=>el.onclick=()=>{route=el.dataset.goto; render();});
-  v.querySelectorAll('[data-filter]').forEach(el=>el.onclick=()=>{deviceFilter=el.dataset.filter; render();});
-  v.querySelectorAll('[data-act]').forEach(el=>el.onclick=()=>{
-    const a=el.dataset.act, d=currentDevice;
-    if(a==='lock')openLock(d);
-    else if(a==='unlock')openUnlock(d);
-    else if(a==='locate')toast(t('toastLocate'));
-    else if(a==='sound')toast(t('toastSound'));
-    else if(a==='register')toast(t('toastRegistered'));
-  });
+  v.querySelectorAll('[data-dev]').forEach(el=>el.onclick=()=>{currentDevice=DEVICES.find(x=>x.id===el.dataset.dev);route='detail';render();});
+  v.querySelectorAll('[data-goto]').forEach(el=>el.onclick=()=>{route=el.dataset.goto;render();});
+  v.querySelectorAll('[data-filter]').forEach(el=>el.onclick=()=>{deviceFilter=el.dataset.filter;render();});
+  v.querySelectorAll('[data-act]').forEach(el=>el.onclick=()=>{const a=el.dataset.act,d=currentDevice;
+    if(a==='lock')openLock(d);else if(a==='unlock')openUnlock(d);else if(a==='locate')toast(t('toastLocate'));else if(a==='sound')toast(t('toastSound'));else if(a==='register')toast(t('toastRegistered'));else if(a==='supcheck')toast(t('toastSup'));});
 }
-
-/* ─────────────── Language / theme ─────────────── */
-function setLang(l){lang=l; document.documentElement.lang=l;
-  document.querySelectorAll('#langSeg button').forEach(b=>b.classList.toggle('on',b.dataset.lang===l));
-  document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));
-  document.getElementById('search').placeholder=lang==='ru'?'Поиск по клиенту, IMEI, договору…':'Mijoz, IMEI, shartnoma bo‘yicha qidirish…';
-  render();}
+/* ─── Lang / theme ─── */
+function setLang(l){lang=l;document.documentElement.lang=l;document.querySelectorAll('#langSeg button').forEach(b=>b.classList.toggle('on',b.dataset.lang===l));document.getElementById('search').placeholder=lang==='ru'?'/ поиск: клиент · IMEI · договор':'/ qidiruv: mijoz · IMEI · shartnoma';render();}
 document.querySelectorAll('#langSeg button').forEach(b=>b.onclick=()=>setLang(b.dataset.lang));
-function toggleTheme(){
-  const r=document.documentElement;
-  r.dataset.theme = r.dataset.theme==='light'?'dark':'light';
-  render();
-}
+function toggleTheme(){const r=document.documentElement;r.dataset.theme=r.dataset.theme==='light'?'dark':'light';render();}
 document.getElementById('themeBtn').onclick=toggleTheme;
-
-/* init */
 render();
 </script>
 </body>
