@@ -1,6 +1,8 @@
 // Seed script — mirrors the demo data from prototype/index.html.
 import "../src/env.js";
+import { randomBytes } from "node:crypto";
 import { PrismaClient } from "@prisma/client";
+import { hashPassword } from "../src/auth/password.js";
 import type {
   ContractStatus,
   EnrollmentStatus,
@@ -142,21 +144,39 @@ const rows: SeedRow[] = [
 async function main(): Promise<void> {
   console.log("Seeding database...");
 
-  // Reset in FK-safe order.
-  await prisma.auditLog.deleteMany();
-  await prisma.mdmCommand.deleteMany();
-  await prisma.device.deleteMany();
-  await prisma.loanContract.deleteMany();
-  await prisma.customer.deleteMany();
-  await prisma.user.deleteMany();
+  // Reset. AuditLog carries a BEFORE DELETE trigger that makes it append-only,
+  // so a row-by-row delete is refused by design — TRUNCATE is the deliberate
+  // table-owner operation that wipes a development database. Never run this
+  // against production: destroying the audit trail is the one thing the schema
+  // is built to prevent.
+  await prisma.$executeRawUnsafe(
+    'TRUNCATE TABLE "AuditLog", "MdmCommand", "Device", "LoanContract", "Customer", "User" RESTART IDENTITY CASCADE',
+  );
 
-  await prisma.user.createMany({
-    data: [
-      { name: "Азиз Каримов", role: "COLLECTIONS" },
-      { name: "Дильноза Ахмедова", role: "POS_OPERATOR" },
-      { name: "Рустам Юлдашев", role: "ADMIN" },
-    ],
-  });
+  // Passwords come from the environment so a seeded deployment never ships
+  // with a known credential. When unset (local dev) a random one is generated
+  // and printed once — there is no default to forget to change.
+  const seededUsers = [
+    { email: "aziz@golden.one", name: "Азиз Каримов", role: "COLLECTIONS" as const, envKey: "SEED_COLLECTIONS_PASSWORD" },
+    { email: "dilnoza@golden.one", name: "Дильноза Ахмедова", role: "POS_OPERATOR" as const, envKey: "SEED_POS_PASSWORD" },
+    { email: "rustam@golden.one", name: "Рустам Юлдашев", role: "ADMIN" as const, envKey: "SEED_ADMIN_PASSWORD" },
+  ];
+
+  const issued: Array<{ email: string; role: string; password: string; generated: boolean }> = [];
+
+  for (const u of seededUsers) {
+    const fromEnv = process.env[u.envKey]?.trim();
+    const password = fromEnv || `go-${randomBytes(12).toString("base64url")}`;
+    await prisma.user.create({
+      data: {
+        email: u.email,
+        name: u.name,
+        role: u.role,
+        passwordHash: await hashPassword(password),
+      },
+    });
+    issued.push({ email: u.email, role: u.role, password, generated: !fromEnv });
+  }
 
   const bySerial: Record<string, string> = {};
 
@@ -198,11 +218,14 @@ async function main(): Promise<void> {
           deviceId: device.id,
           type: "LOCK",
           status: "ACKNOWLEDGED",
-          payload: JSON.stringify({
+          provider: process.env.MDM_PROVIDER ?? "mock",
+          providerCommandId: `seed-lock-${device.id}`,
+          settledAt: new Date(),
+          payload: {
             message:
               "Устройство заблокировано в связи с просрочкой платежа. Для разблокировки обратитесь в Golden One.",
             phone: "+998 71 200-00-00",
-          }),
+          },
         },
       });
     }
@@ -235,6 +258,16 @@ async function main(): Promise<void> {
       },
     ],
   });
+
+  console.log("\nSeeded operator accounts:");
+  for (const u of issued) {
+    console.log(
+      `  ${u.role.padEnd(13)} ${u.email.padEnd(22)} ${
+        u.generated ? `password: ${u.password}  (generated — save it now)` : "password: from environment"
+      }`,
+    );
+  }
+  console.log();
 
   const counts = {
     users: await prisma.user.count(),

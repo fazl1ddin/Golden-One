@@ -46,6 +46,18 @@ export interface DeviceManager {
   locate(serial: string): Promise<GeoPoint>;
   playSound(serial: string): Promise<CommandResult>;
   removeManagement(serial: string): Promise<CommandResult>;
+  /**
+   * Ask the vendor what actually happened to a previously issued command.
+   *
+   * Apple MDM is asynchronous: accepting a command means it was queued for
+   * APNs delivery, not that the phone applied it — a device that is off or has
+   * no network can sit queued for hours. This is how the system learns the real
+   * outcome instead of assuming the optimistic one.
+   */
+  getCommandStatus(
+    serial: string,
+    providerCommandId: string,
+  ): Promise<CommandResult>;
 }
 
 export class MdmError extends Error {

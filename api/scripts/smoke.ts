@@ -1,162 +1,120 @@
-// Smoke test — boots the server on a test port and exercises key endpoints,
-// printing PASS/FAIL for each. Exits non-zero if any check fails.
-import "../src/env.js";
-import { buildApp } from "../src/app.js";
-import { prisma } from "../src/db.js";
+// Post-deploy smoke check.
+//
+// Unlike the test suite (which boots its own app against a test database), this
+// runs against an already-deployed instance and answers the questions you want
+// answered right after a release: is it up, can it reach its database, and is
+// the authentication wall actually in front of the dangerous endpoints.
+//
+//   npm run smoke -- https://api.golden.one
+//   SMOKE_EMAIL=... SMOKE_PASSWORD=... npm run smoke -- https://api.golden.one
 
-const PORT = Number(process.env.SMOKE_PORT ?? 4599);
-const BASE = `http://127.0.0.1:${PORT}`;
+const base = (
+  process.argv[2] ??
+  process.env.SMOKE_URL ??
+  "http://127.0.0.1:4000"
+).replace(/\/+$/, "");
 
 let passed = 0;
 let failed = 0;
 
 function check(name: string, ok: boolean, detail = ""): void {
   if (ok) {
-    passed++;
+    passed += 1;
     console.log(`PASS  ${name}${detail ? ` — ${detail}` : ""}`);
   } else {
-    failed++;
+    failed += 1;
     console.log(`FAIL  ${name}${detail ? ` — ${detail}` : ""}`);
   }
 }
 
-async function getJson(path: string): Promise<{ status: number; body: any }> {
-  const res = await fetch(`${BASE}${path}`);
-  const body = await res.json().catch(() => null);
-  return { status: res.status, body };
-}
-
-async function postJson(
+async function req(
   path: string,
-  data: unknown,
-  headers: Record<string, string> = {},
+  init: RequestInit = {},
 ): Promise<{ status: number; body: any }> {
-  const res = await fetch(`${BASE}${path}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...headers },
-    body: JSON.stringify(data),
+  const res = await fetch(`${base}${path}`, {
+    ...init,
+    headers: { "Content-Type": "application/json", ...(init.headers ?? {}) },
   });
   const body = await res.json().catch(() => null);
   return { status: res.status, body };
 }
 
 async function main(): Promise<void> {
-  const app = await buildApp();
-  await app.listen({ port: PORT, host: "127.0.0.1" });
-  console.log(`Smoke server listening on ${BASE}\n`);
+  console.log(`Smoke-checking ${base}\n`);
 
-  try {
-    // 1. Health
-    {
-      const { status, body } = await getJson("/health");
-      check("GET /health", status === 200 && body?.status === "ok", `status=${status}`);
-    }
+  const live = await req("/health/live");
+  check("liveness responds", live.status === 200, `status=${live.status}`);
 
-    // 2. Stats
-    let statsBefore: any;
-    {
-      const { status, body } = await getJson("/api/stats");
-      statsBefore = body;
-      check(
-        "GET /api/stats",
-        status === 200 && typeof body?.totalDevices === "number",
-        `totalDevices=${body?.totalDevices} locked=${body?.lockedDevices} overdue=${body?.overdueContracts}`,
-      );
-    }
-
-    // 3. Devices list
-    let targetId = "";
-    {
-      const { status, body } = await getJson("/api/devices");
-      const list = Array.isArray(body) ? body : [];
-      // pick an unlocked device to lock.
-      const target = list.find((d: any) => d.lockStatus === "UNLOCKED") ?? list[0];
-      targetId = target?.id ?? "";
-      check(
-        "GET /api/devices",
-        status === 200 && list.length > 0 && Boolean(targetId),
-        `count=${list.length} target=${target?.serial ?? "none"}`,
-      );
-    }
-
-    // 4. Audit count before lock
-    const auditBefore = (await getJson("/api/audit")).body?.length ?? 0;
-
-    // 5. Lock
-    {
-      const { status, body } = await postJson(
-        `/api/devices/${targetId}/lock`,
-        { reason: "smoke-test overdue", message: "Заблокировано (smoke)", phone: "+998 71 200-00-00" },
-        { "x-actor": "SmokeBot" },
-      );
-      const locked = body?.device?.lockStatus === "LOCKED";
-      const hasLockCommand = (body?.device?.commands ?? []).some(
-        (c: any) => c.type === "LOCK",
-      );
-      check(
-        "POST /api/devices/:id/lock -> LOCKED",
-        status === 200 && locked,
-        `lockStatus=${body?.device?.lockStatus}`,
-      );
-      check(
-        "MdmCommand LOCK recorded",
-        hasLockCommand,
-        `command.status=${body?.command?.status}`,
-      );
-    }
-
-    // 6. Audit + command persisted in DB
-    {
-      const auditAfter = (await getJson("/api/audit")).body ?? [];
-      const grew = auditAfter.length > auditBefore;
-      const lockEntry = auditAfter.find(
-        (a: any) => a.action === "LOCK" && a.deviceId === targetId && a.actorName === "SmokeBot",
-      );
-      check(
-        "AuditLog grew after lock",
-        grew && Boolean(lockEntry),
-        `before=${auditBefore} after=${auditAfter.length}`,
-      );
-
-      const dbCommands = await prisma.mdmCommand.count({
-        where: { deviceId: targetId, type: "LOCK" },
-      });
-      check("MdmCommand LOCK row in DB", dbCommands >= 1, `count=${dbCommands}`);
-    }
-
-    // 7. Stats reflect the new lock
-    {
-      const { body } = await getJson("/api/stats");
-      check(
-        "Stats lockedDevices increased",
-        body?.lockedDevices === (statsBefore?.lockedDevices ?? 0) + 1,
-        `before=${statsBefore?.lockedDevices} after=${body?.lockedDevices}`,
-      );
-    }
-
-    // 8. Unlock
-    {
-      const { status, body } = await postJson(
-        `/api/devices/${targetId}/unlock`,
-        { reason: "smoke-test payment received" },
-        { "x-actor": "SmokeBot" },
-      );
-      check(
-        "POST /api/devices/:id/unlock -> UNLOCKED",
-        status === 200 && body?.device?.lockStatus === "UNLOCKED",
-        `lockStatus=${body?.device?.lockStatus}`,
-      );
-    }
-  } catch (err) {
-    check("smoke run", false, String(err));
-  } finally {
-    await app.close();
-    await prisma.$disconnect();
+  const ready = await req("/health/ready");
+  check(
+    "readiness reports healthy",
+    ready.status === 200 && ready.body?.status === "ok",
+    `status=${ready.status} db=${ready.body?.checks?.database}`,
+  );
+  check(
+    "an MDM provider is configured",
+    Boolean(ready.body?.checks?.mdmProvider),
+    `provider=${ready.body?.checks?.mdmProvider}`,
+  );
+  if (ready.body?.env === "production" && ready.body?.checks?.mdmProvider === "mock") {
+    check(
+      "production is not running the mock MDM",
+      false,
+      "MDM_PROVIDER=mock would report locks that never reach a device",
+    );
   }
 
-  console.log(`\n${passed} passed, ${failed} failed`);
-  console.log(failed === 0 ? "SMOKE: PASS" : "SMOKE: FAIL");
+  // The whole product rests on these being unreachable without a token.
+  for (const path of ["/api/devices", "/api/stats", "/api/audit", "/api/users"]) {
+    const res = await req(path);
+    check(`${path} requires authentication`, res.status === 401, `status=${res.status}`);
+  }
+
+  const anonLock = await req("/api/devices/any-id/lock", {
+    method: "POST",
+    body: JSON.stringify({ message: "x", phone: "+998" }),
+  });
+  check(
+    "locking requires authentication",
+    anonLock.status === 401,
+    `status=${anonLock.status}`,
+  );
+
+  const email = process.env.SMOKE_EMAIL;
+  const password = process.env.SMOKE_PASSWORD;
+  if (email && password) {
+    const login = await req("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    });
+    check("credentials are accepted", login.status === 200, `status=${login.status}`);
+
+    if (login.body?.token) {
+      const headers = { authorization: `Bearer ${login.body.token}` };
+
+      const me = await req("/api/auth/me", { headers });
+      check("token identifies the user", me.status === 200, `role=${me.body?.user?.role}`);
+
+      const devices = await req("/api/devices?limit=1", { headers });
+      check(
+        "device list is reachable with a token",
+        devices.status === 200,
+        `status=${devices.status}`,
+      );
+    }
+  } else {
+    console.log(
+      "\n(set SMOKE_EMAIL and SMOKE_PASSWORD to also verify login and an authenticated read)",
+    );
+  }
+
+  console.log(
+    `\nSMOKE: ${failed === 0 ? "PASS" : "FAIL"}, ${passed} passed, ${failed} failed`,
+  );
   process.exit(failed === 0 ? 0 : 1);
 }
 
-void main();
+main().catch((err) => {
+  console.error("Smoke check could not run:", err);
+  process.exit(1);
+});

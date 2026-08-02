@@ -1,0 +1,50 @@
+# Local stack: Postgres + the API.
+#
+# Bring it up with:
+#   docker compose up --build -d
+#   docker compose run --rm api npm run migrate:deploy
+#   docker compose run --rm api npm run seed      # dev data + generated passwords
+#
+# Migrations run as an explicit step rather than on container start so that
+# scaling the API to several replicas never races on the same database.
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: golden
+      POSTGRES_PASSWORD: golden
+      POSTGRES_DB: goldenone
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U golden -d goldenone"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://golden:golden@db:5432/goldenone
+      # Compose-local values only. In a real deployment these come from the
+      # platform's secret store — never from a file in the repository.
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET (32+ chars) before starting}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      MDM_PROVIDER: ${MDM_PROVIDER:-mosyle}
+      MOSYLE_API_URL: ${MOSYLE_API_URL:-}
+      MOSYLE_ACCESS_TOKEN: ${MOSYLE_ACCESS_TOKEN:-}
+      # The API sits behind a proxy in this setup, so client IPs arrive in
+      # X-Forwarded-For and are safe to trust.
+      TRUST_PROXY: "true"
+      PORT: "4000"
+    ports:
+      - "4000:4000"
+    restart: unless-stopped
+
+volumes:
+  db-data:

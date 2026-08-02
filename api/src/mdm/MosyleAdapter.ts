@@ -199,4 +199,41 @@ export class MosyleAdapter implements DeviceManager {
     const body = await this.call("RemoveManagement", serial);
     return this.toCommandResult(body);
   }
+
+  async getCommandStatus(
+    serial: string,
+    providerCommandId: string,
+  ): Promise<CommandResult> {
+    const { apiUrl, accessToken } = this.readConfig();
+    const url = `${apiUrl.replace(/\/+$/, "")}/devices/command/status`;
+
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+          accept: "application/json",
+        },
+        body: JSON.stringify({ accessToken, serialNumber: serial, commandId: providerCommandId }),
+      });
+    } catch (err) {
+      throw new MdmError(
+        `Mosyle status check failed for command ${providerCommandId}`,
+        this.provider,
+        err,
+      );
+    }
+
+    const body = (await res.json().catch(() => ({}))) as MosyleResponse;
+    if (!res.ok) {
+      throw new MdmError(
+        `Mosyle status error ${res.status} for command ${providerCommandId}`,
+        this.provider,
+        body,
+      );
+    }
+    return { ...this.toCommandResult(body), commandId: providerCommandId };
+  }
 }

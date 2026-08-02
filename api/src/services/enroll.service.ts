@@ -3,10 +3,13 @@
 
 import type { ContractStatus } from "../domain.js";
 import { prisma } from "../db.js";
+import { getDeviceManager } from "../mdm/index.js";
 import { recordAudit } from "./audit.service.js";
+import { AppError } from "./errors.js";
+import type { ActorContext } from "./device.service.js";
 
 export interface EnrollInput {
-  actorName: string;
+  actor: ActorContext;
   customer: { fullName: string; phone: string; doc: string };
   contract: {
     number: string;
@@ -21,6 +24,21 @@ export interface EnrollInput {
 }
 
 export async function enrollDevice(input: EnrollInput) {
+  // Verify with the MDM that this phone really is enrolled and supervised
+  // before it is recorded as financed. Registering a device we cannot actually
+  // command would leave collections holding a contract with no remedy.
+  const mdm = getDeviceManager();
+  const enrollment = await mdm.getEnrollmentStatus(input.device.serial);
+  if (enrollment.state !== "ENROLLED" || !enrollment.supervised) {
+    throw new AppError(
+      `Device ${input.device.serial} is not enrolled and supervised in ${mdm.provider} ` +
+        `(state=${enrollment.state}, supervised=${enrollment.supervised}). ` +
+        "Complete Apple Configurator setup before registering it.",
+      409,
+      "NOT_SUPERVISED",
+    );
+  }
+
   const created = await prisma.$transaction(async (tx) => {
     const customer = await tx.customer.create({
       data: {
@@ -64,11 +82,14 @@ export async function enrollDevice(input: EnrollInput) {
   });
 
   await recordAudit({
-    actorName: input.actorName,
+    actorId: input.actor.id,
+    actorName: input.actor.name,
     action: "ENROLL",
     deviceId: created.id,
     contractId: created.contractId,
     reason: `Enrolled ${created.model} (${created.serial})`,
+    ip: input.actor.ip,
+    userAgent: input.actor.userAgent,
   });
 
   return created;

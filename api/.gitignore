@@ -1,6 +1,13 @@
 node_modules/
 dist/
+
+# Local databases
 dev.db
 dev.db-journal
 *.db
+
+# Secrets and machine-local configuration. .env.example is the committed
+# template; everything else stays on the machine it belongs to.
 .env
+.env.*
+!.env.example

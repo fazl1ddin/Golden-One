@@ -1,27 +1,95 @@
-// Golden One — Prisma schema (SQLite)
+// Golden One — Prisma schema (PostgreSQL)
 // Credit organization system for remotely locking financed iPhones via MDM.
 //
-// NOTE: SQLite does not support native enums, so enum-typed columns are stored
-// as String. The allowed values are enforced in code via TypeScript union types
-// and Zod schemas (see src/domain.ts and src/schemas.ts). Switching the
-// datasource to PostgreSQL later can promote these back to real enums.
+// Enum-typed columns are real database enums: the database rejects an invalid
+// state even if application code is bypassed. Schema changes go through
+// `prisma migrate` so production has a replayable migration history.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id   String @id @default(cuid())
-  name String
-  // Role: POS_OPERATOR | COLLECTIONS | ADMIN
-  role String @default("COLLECTIONS")
+enum Role {
+  /// Registers devices at the point of sale. Cannot lock or unlock.
+  POS_OPERATOR
+  /// Works the collections queue: lock, unlock, locate, sound.
+  COLLECTIONS
+  /// Everything, plus user administration.
+  ADMIN
+}
 
-  createdAt DateTime @default(now())
+enum ContractStatus {
+  ACTIVE
+  OVERDUE
+  PAID
+  DEFAULTED
+}
+
+enum EnrollmentStatus {
+  ENROLLED
+  PENDING
+  RELEASED
+}
+
+/// A device is only LOCKED once the MDM confirms the command reached it.
+/// Until then it sits in a *_PENDING state — an offline phone must never be
+/// reported to an operator as already locked.
+enum LockStatus {
+  UNLOCKED
+  LOCK_PENDING
+  LOCKED
+  UNLOCK_PENDING
+}
+
+enum CommandType {
+  LOCK
+  UNLOCK
+  LOCATE
+  SOUND
+  REMOVE_MGMT
+}
+
+enum CommandStatus {
+  PENDING
+  ACKNOWLEDGED
+  ERROR
+}
+
+enum AuditAction {
+  LOGIN
+  LOCK
+  UNLOCK
+  LOCATE
+  SOUND
+  ENROLL
+  RELEASE
+  USER_CREATE
+  USER_DISABLE
+}
+
+model User {
+  id           String  @id @default(cuid())
+  email        String  @unique
+  name         String
+  passwordHash String
+  role         Role    @default(COLLECTIONS)
+  active       Boolean @default(true)
+
+  /// Bumped on password change or forced logout; tokens issued before the
+  /// current value are rejected, so revocation needs no token store.
+  tokenVersion Int @default(0)
+
+  lastLoginAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  auditLogs AuditLog[]
+  commands  MdmCommand[]
 }
 
 model Customer {
@@ -34,37 +102,47 @@ model Customer {
   devices   Device[]
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([fullName])
+  @@index([phone])
 }
 
 model LoanContract {
-  id              String    @id @default(cuid())
-  number          String    @unique
+  id              String         @id @default(cuid())
+  number          String         @unique
   customerId      String
   amount          Int
   monthly         Int
-  paid            Int       @default(0)
+  paid            Int            @default(0)
   nextPaymentDate DateTime?
-  daysOverdue     Int       @default(0)
-  // ContractStatus: ACTIVE | OVERDUE | PAID | DEFAULTED
-  status          String    @default("ACTIVE")
+  daysOverdue     Int            @default(0)
+  status          ContractStatus @default(ACTIVE)
 
   customer Customer @relation(fields: [customerId], references: [id])
   devices  Device[]
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([customerId])
 }
 
 model Device {
-  id         String  @id @default(cuid())
-  serial     String  @unique
-  imei       String  @unique
-  model      String
-  ios        String
-  supervised Boolean @default(true)
-  // EnrollmentStatus: ENROLLED | PENDING | RELEASED
-  enrollmentStatus String @default("ENROLLED")
-  // LockStatus: LOCKED | UNLOCKED
-  lockStatus       String @default("UNLOCKED")
+  id               String           @id @default(cuid())
+  serial           String           @unique
+  imei             String           @unique
+  model            String
+  ios              String
+  supervised       Boolean          @default(true)
+  enrollmentStatus EnrollmentStatus @default(ENROLLED)
+  lockStatus       LockStatus       @default(UNLOCKED)
+
+  /// Last time the MDM reported the device checked in — an operator needs to
+  /// know a command may be sitting queued because the phone has been offline.
+  lastSeenAt DateTime?
+
   customerId String
   contractId String
 
@@ -74,27 +152,67 @@ model Device {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([lockStatus])
+  @@index([contractId])
+  @@index([customerId])
 }
 
 model MdmCommand {
-  id       String @id @default(cuid())
+  id       String        @id @default(cuid())
   deviceId String
-  // CommandType: LOCK | UNLOCK | LOCATE | SOUND | REMOVE_MGMT
-  type     String
-  // CommandStatus: PENDING | ACKNOWLEDGED | ERROR
-  status   String   @default("PENDING")
-  payload  String? // JSON-encoded string
-  createdAt DateTime @default(now())
+  type     CommandType
+  status   CommandStatus @default(PENDING)
+
+  /// Vendor-side command id, used to reconcile the real outcome later.
+  providerCommandId String?
+  provider          String
+  payload           Json?
+  error             String?
+
+  attempts    Int       @default(0)
+  lastTriedAt DateTime?
+  settledAt   DateTime?
+
+  /// Set from the Idempotency-Key header so a retried request re-uses the
+  /// original command instead of sending a second lock to the device.
+  idempotencyKey String? @unique
+
+  requestedById String?
+  requestedBy   User?   @relation(fields: [requestedById], references: [id])
 
   device Device @relation(fields: [deviceId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([deviceId, createdAt])
 }
 
+/// Append-only compliance record. Rows are never updated or deleted by the
+/// application; a migration revokes UPDATE/DELETE from the app's database role.
 model AuditLog {
-  id         String   @id @default(cuid())
-  actorName  String
-  action     String
+  id String @id @default(cuid())
+
+  /// Snapshot of the actor's name at the time of the action, kept even if the
+  /// user is later renamed or deactivated.
+  actorName String
+  actorId   String?
+  actor     User?   @relation(fields: [actorId], references: [id])
+
+  action     AuditAction
   deviceId   String?
   contractId String?
   reason     String?
-  createdAt  DateTime @default(now())
+  /// Where the action came from — needed when a customer disputes a lock.
+  ip        String?
+  userAgent String?
+  meta      Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([deviceId])
+  @@index([actorId])
 }
