@@ -1,0 +1,52 @@
+{
+  "pkg": "@golden-one/ui",
+  "globalName": "GoldenOneUI",
+  "projectId": "784fc543-ea80-4250-a4f6-0403267fa828",
+  "shape": "package",
+  "buildCmd": "npm run build",
+  "cssEntry": "dist/style.css",
+  "docsDir": "docs",
+  "overrides": {
+    "Modal": {
+      "cardMode": "single",
+      "primaryStory": "LockDevice"
+    },
+    "DataTable": {
+      "cardMode": "column"
+    },
+    "Topbar": {
+      "cardMode": "column",
+      "viewport": "1280x420"
+    },
+    "Rail": {
+      "cardMode": "column",
+      "viewport": "420x520"
+    },
+    "Label": {
+      "cardMode": "column"
+    },
+    "Textarea": {
+      "cardMode": "column"
+    },
+    "Icon": {
+      "cardMode": "column"
+    },
+    "ThemeProvider": {
+      "cardMode": "column"
+    },
+    "LiveIndicator": {
+      "cardMode": "column"
+    }
+  },
+  "provider": {
+    "component": "ThemeProvider",
+    "props": {
+      "theme": "dark",
+      "padded": true
+    }
+  },
+  "dtsPropsFor": {
+    "DataTable": "\n  /** Column definitions; each `render` receives a row and returns that cell. */\n  columns: { key: string; header: React.ReactNode; render: (row: any) => React.ReactNode }[];\n  /** Row records — any shape; the column `render` functions read them. */\n  rows: any[];\n  /** Stable key per row. */\n  rowKey: (row: any) => string;\n  /** Set to make rows interactive; omit for a read-only table. */\n  onRowClick?: (row: any) => void;\n"
+  },
+  "readmeHeader": ".design-sync/conventions.md"
+}

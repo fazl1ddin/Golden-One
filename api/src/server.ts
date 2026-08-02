@@ -1,0 +1,29 @@
+// Entry point: boots the Fastify server.
+import { buildApp } from "./app.js";
+import { prisma } from "./db.js";
+
+const PORT = Number(process.env.PORT ?? 4000);
+const HOST = process.env.HOST ?? "0.0.0.0";
+
+async function main(): Promise<void> {
+  const app = await buildApp();
+
+  const shutdown = async (signal: string): Promise<void> => {
+    app.log.info(`Received ${signal}, shutting down...`);
+    await app.close();
+    await prisma.$disconnect();
+    process.exit(0);
+  };
+  process.on("SIGINT", () => void shutdown("SIGINT"));
+  process.on("SIGTERM", () => void shutdown("SIGTERM"));
+
+  try {
+    await app.listen({ port: PORT, host: HOST });
+  } catch (err) {
+    app.log.error(err);
+    await prisma.$disconnect();
+    process.exit(1);
+  }
+}
+
+void main();

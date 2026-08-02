@@ -1,0 +1,174 @@
+/* Golden One — Console design system tokens + component styles */
+:root {
+  --go-bg:#0b0e13; --go-panel:#12161e; --go-panel-2:#161b25; --go-panel-3:#1c2230;
+  --go-border:#212734; --go-border-2:#2c3444;
+  --go-text:#d7dde8; --go-muted:#8791a3; --go-faint:#5a6474;
+  --go-cy:#4fd1c5; --go-cy-dim:#2b9c92; --go-cy-soft:rgba(79,209,197,.13);
+  --go-steel:#5eb0ef; --go-steel-soft:rgba(94,176,239,.13);
+  --go-green:#37d39b; --go-green-soft:rgba(55,211,155,.14);
+  --go-amber:#f2b338; --go-amber-soft:rgba(242,179,56,.14);
+  --go-red:#f2555c; --go-red-soft:rgba(242,85,92,.15);
+  --go-radius:10px; --go-radius-sm:8px;
+  --go-shadow:0 12px 40px rgba(0,0,0,.5);
+  --go-mono:'SF Mono',ui-monospace,Menlo,Consolas,monospace;
+  --go-font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+}
+/* Also scoped to .go-app so a nested <ThemeProvider theme="light"> produces a
+   real light surface. Without the scoped selector only the outermost provider
+   could switch themes, because the tokens lived on :root alone. */
+:root[data-theme="light"], .go-app[data-theme="light"] {
+  --go-bg:#eef1f5; --go-panel:#fff; --go-panel-2:#f5f7fa; --go-panel-3:#eaeef3;
+  --go-border:#dfe4ec; --go-border-2:#cfd6e1;
+  --go-text:#141a24; --go-muted:#586274; --go-faint:#8b95a6;
+  --go-cy:#0e9c8f; --go-cy-dim:#0b7c72; --go-cy-soft:rgba(14,156,143,.12);
+  --go-steel:#2f74c4; --go-steel-soft:rgba(47,116,196,.1);
+  --go-shadow:0 12px 40px rgba(20,25,40,.14);
+}
+
+.go-root, .go-app { font-family:var(--go-font); color:var(--go-text); background:var(--go-bg); min-height:100%; }
+.go-app--padded { padding:20px; }
+.go-mono { font-family:var(--go-mono); font-variant-numeric:tabular-nums; }
+.go-app svg, .go-root svg { fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+/* Button */
+.go-btn { display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:9px 14px;
+  border-radius:9px; font-size:12.5px; font-weight:700; letter-spacing:.2px; border:1px solid transparent;
+  cursor:pointer; transition:.14s; font-family:inherit; }
+.go-btn:disabled { opacity:.5; cursor:not-allowed; }
+.go-btn svg { width:15px; height:15px; }
+.go-btn--cy { background:linear-gradient(135deg,var(--go-cy),var(--go-cy-dim)); color:#04211e; }
+.go-btn--cy:hover:not(:disabled) { filter:brightness(1.08); }
+.go-btn--red { background:var(--go-red); color:#fff; }
+.go-btn--red:hover:not(:disabled) { filter:brightness(1.08); }
+.go-btn--ghost { background:var(--go-panel-2); border-color:var(--go-border); color:var(--go-text); }
+.go-btn--ghost:hover:not(:disabled) { border-color:var(--go-border-2); background:var(--go-panel-3); }
+.go-btn--block { width:100%; }
+
+/* Badge / status pill */
+.go-badge { display:inline-flex; align-items:center; gap:5px; padding:2px 8px; border-radius:6px;
+  font-size:11px; font-weight:700; white-space:nowrap; }
+.go-badge__dot { width:5px; height:5px; border-radius:50%; }
+.go-badge--green { background:var(--go-green-soft); color:var(--go-green); }
+.go-badge--green .go-badge__dot { background:var(--go-green); }
+.go-badge--amber { background:var(--go-amber-soft); color:var(--go-amber); }
+.go-badge--amber .go-badge__dot { background:var(--go-amber); }
+.go-badge--red { background:var(--go-red-soft); color:var(--go-red); }
+.go-badge--red .go-badge__dot { background:var(--go-red); }
+.go-badge--steel { background:var(--go-steel-soft); color:var(--go-steel); }
+.go-badge--steel .go-badge__dot { background:var(--go-steel); }
+.go-badge--gray { background:var(--go-panel-3); color:var(--go-muted); }
+.go-badge--gray .go-badge__dot { background:var(--go-faint); }
+
+/* Panel */
+.go-panel { background:var(--go-panel); border:1px solid var(--go-border); border-radius:var(--go-radius); overflow:hidden; }
+.go-panel__h { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--go-border); }
+.go-panel__h h3 { font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; margin:0; }
+.go-panel__h h3 span { color:var(--go-faint); margin-left:6px; font-weight:600; }
+.go-link { color:var(--go-cy); font-size:12px; font-weight:700; cursor:pointer; background:none; border:none; }
+
+/* KPI */
+.go-kpi { background:var(--go-panel); border:1px solid var(--go-border); border-radius:var(--go-radius);
+  padding:14px 16px; position:relative; overflow:hidden; }
+.go-kpi::before { content:""; position:absolute; left:0; top:12px; bottom:12px; width:3px; border-radius:3px; background:var(--go-steel); }
+.go-kpi--green::before { background:var(--go-green); }
+.go-kpi--amber::before { background:var(--go-amber); }
+.go-kpi--red::before { background:var(--go-red); }
+.go-kpi__l { font-size:10.5px; text-transform:uppercase; letter-spacing:.6px; color:var(--go-faint); font-weight:600; padding-left:9px; }
+.go-kpi__v { font-size:27px; font-weight:750; letter-spacing:-.5px; padding-left:9px; margin-top:4px; }
+.go-kpi__d { font-size:11px; color:var(--go-muted); padding-left:9px; margin-top:3px; }
+
+/* Table */
+.go-table { width:100%; border-collapse:collapse; }
+.go-table th { text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:.6px; color:var(--go-faint); font-weight:600; padding:9px 16px; }
+.go-table td { padding:11px 16px; border-top:1px solid var(--go-border); font-size:12.5px; }
+.go-table tbody tr { transition:.1s; }
+.go-table tbody tr.go-clickable { cursor:pointer; }
+.go-table tbody tr.go-clickable:hover { background:var(--go-panel-2); }
+.go-cn { font-weight:650; }
+.go-cm { font-size:11px; color:var(--go-faint); }
+
+/* Chip */
+.go-chip { padding:6px 12px; border-radius:8px; border:1px solid var(--go-border); background:var(--go-panel);
+  font-size:12px; font-weight:600; color:var(--go-muted); cursor:pointer; }
+.go-chip:hover { color:var(--go-text); }
+.go-chip--on { background:var(--go-cy-soft); color:var(--go-cy); border-color:transparent; }
+
+/* Toggle */
+.go-toggle { width:40px; height:23px; border-radius:20px; background:var(--go-panel-3); position:relative;
+  border:1px solid var(--go-border); transition:.2s; cursor:pointer; }
+.go-toggle--on { background:var(--go-cy); }
+.go-toggle::after { content:""; position:absolute; top:2px; left:2px; width:17px; height:17px; border-radius:50%; background:#fff; transition:.2s; }
+.go-toggle--on::after { left:19px; }
+
+/* Field (label/value row) */
+.go-field { padding:11px 20px; border-top:1px solid var(--go-border); display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.go-field__l { font-size:12px; color:var(--go-muted); }
+.go-field__v { font-size:12.5px; font-weight:650; text-align:right; }
+
+/* Form controls */
+.go-input, .go-select, .go-textarea { width:100%; background:var(--go-panel-2); border:1px solid var(--go-border);
+  color:var(--go-text); padding:9px 11px; border-radius:8px; font-size:13px; outline:none; font-family:inherit; }
+.go-textarea { resize:vertical; min-height:60px; }
+.go-input:focus, .go-select:focus, .go-textarea:focus { border-color:var(--go-cy-dim); box-shadow:0 0 0 3px var(--go-cy-soft); }
+.go-label { display:block; font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--go-muted); margin-bottom:5px; font-weight:600; }
+
+/* Lost Mode preview */
+.go-lost { background:#05070a; border:1px solid #1b212c; border-radius:11px; padding:20px; text-align:center; }
+.go-lost__k { width:24px; height:24px; margin:0 auto 9px; color:#fff; opacity:.85; }
+.go-lost__t { color:#fff; font-size:13px; font-weight:650; margin-bottom:6px; }
+.go-lost__m { color:#aeb6c4; font-size:11.5px; line-height:1.5; }
+.go-lost__p { color:var(--go-cy); font-weight:750; margin-top:9px; font-family:var(--go-mono); }
+
+/* Modal */
+/* flex + margin:auto centers the dialog but, unlike place-items:center, never
+   clips a dialog taller than the viewport — the header stays scrollable to. */
+.go-overlay { position:fixed; inset:0; background:rgba(4,6,10,.7); backdrop-filter:blur(4px); display:flex; overflow:auto; z-index:100; padding:20px; }
+.go-modal { margin:auto; background:var(--go-panel); border:1px solid var(--go-border); border-radius:14px; width:100%; max-width:440px; box-shadow:var(--go-shadow); overflow:hidden; animation:go-pop .16s ease; }
+@keyframes go-pop { from { transform:scale(.97); opacity:0; } to { transform:scale(1); opacity:1; } }
+.go-modal__h { padding:18px 20px 0; display:flex; gap:12px; align-items:flex-start; }
+.go-modal__ico { width:40px; height:40px; border-radius:10px; flex-shrink:0; display:grid; place-items:center; }
+.go-modal__ico svg { width:20px; height:20px; }
+.go-modal__h h3 { font-size:15px; margin:0; }
+.go-modal__h p { font-size:12.5px; color:var(--go-muted); margin:2px 0 0; }
+.go-modal__b { padding:16px 20px; }
+.go-modal__f { padding:14px 20px; border-top:1px solid var(--go-border); display:flex; gap:9px; justify-content:flex-end; background:var(--go-panel-2); }
+.go-warn { display:flex; gap:9px; padding:10px 12px; border-radius:9px; background:var(--go-amber-soft); font-size:12px; color:var(--go-amber); margin-bottom:14px; align-items:flex-start; }
+.go-warn svg { width:15px; height:15px; flex-shrink:0; margin-top:1px; }
+
+/* Rail */
+.go-rail { background:#0e1219; border-right:1px solid var(--go-border); display:flex; flex-direction:column; align-items:center; padding:16px 0; gap:4px; }
+:root[data-theme="light"] .go-rail, .go-app[data-theme="light"] .go-rail { background:#f6f8fb; }
+.go-rail__mk { width:38px; height:38px; border-radius:11px; background:linear-gradient(135deg,var(--go-cy),var(--go-cy-dim));
+  display:grid; place-items:center; color:#04211e; font-weight:800; font-size:15px; margin-bottom:16px; flex-shrink:0; }
+.go-rail__i { width:58px; padding:9px 0; border-radius:11px; display:flex; flex-direction:column; align-items:center; gap:5px;
+  color:var(--go-faint); font-size:9.5px; font-weight:600; letter-spacing:.2px; transition:.14s; position:relative; cursor:pointer; border:none; background:none; }
+.go-rail__i svg { width:19px; height:19px; }
+.go-rail__i:hover { color:var(--go-text); background:var(--go-panel-2); }
+.go-rail__i--on { background:var(--go-cy-soft); color:var(--go-cy); }
+.go-rail__bg { position:absolute; top:4px; right:8px; background:var(--go-red); color:#fff; font-size:9px; font-weight:800;
+  min-width:15px; height:15px; border-radius:20px; display:grid; place-items:center; padding:0 3px; }
+
+/* Topbar */
+.go-top { display:flex; align-items:center; gap:14px; padding:14px 22px; border-bottom:1px solid var(--go-border); background:var(--go-bg); }
+.go-top__t { font-size:16px; font-weight:700; letter-spacing:.2px; }
+.go-top__c { font-size:11.5px; color:var(--go-faint); margin-top:1px; }
+.go-live { display:flex; align-items:center; gap:7px; font-size:11.5px; color:var(--go-muted); font-weight:600; }
+.go-live__b { width:7px; height:7px; border-radius:50%; background:var(--go-green); box-shadow:0 0 0 3px var(--go-green-soft); }
+/* The reset belongs on .go-seg itself, not only on its children: ThemeButton
+   renders a <button class="go-seg">, which would otherwise keep the UA
+   buttonface/buttontext colours and paint white on the dark surface. */
+.go-seg { display:flex; border:1px solid var(--go-border); border-radius:7px; overflow:hidden;
+  background:none; color:var(--go-muted); font-family:inherit; }
+.go-seg button { padding:6px 10px; font-size:11.5px; font-weight:700; color:var(--go-faint); background:none; border:none; cursor:pointer; }
+.go-seg button.go-seg--on { background:var(--go-cy-soft); color:var(--go-cy); }
+
+/* utility */
+.go-feed { display:flex; flex-direction:column; }
+.go-ev { display:flex; gap:11px; padding:11px 16px; border-top:1px solid var(--go-border); }
+.go-ev:first-child { border-top:none; }
+.go-ev__ico { width:28px; height:28px; border-radius:7px; flex-shrink:0; display:grid; place-items:center; }
+.go-ev__ico svg { width:14px; height:14px; }
+.go-ev__t { font-size:12.5px; }
+.go-ev__time { font-size:11px; color:var(--go-faint); margin-top:1px; }
+.go-over { font-weight:700; color:var(--go-amber); }
+.go-over--hi { color:var(--go-red); }
