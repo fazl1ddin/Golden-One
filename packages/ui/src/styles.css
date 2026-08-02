@@ -10,7 +10,7 @@
   --go-red:#f2555c; --go-red-soft:rgba(242,85,92,.15);
   --go-radius:10px; --go-radius-sm:8px;
   --go-shadow:0 12px 40px rgba(0,0,0,.5);
-  --go-mono:'SF Mono',ui-monospace,Menlo,Consolas,'Roboto Mono',monospace;
+  --go-mono:'SF Mono',ui-monospace,Menlo,Consolas,monospace;
   --go-font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
 }
 :root[data-theme="light"] {
@@ -22,7 +22,8 @@
   --go-shadow:0 12px 40px rgba(20,25,40,.14);
 }
 
-.go-root, .go-app { font-family:var(--go-font); color:var(--go-text); }
+.go-root, .go-app { font-family:var(--go-font); color:var(--go-text); background:var(--go-bg); min-height:100%; }
+.go-app--padded { padding:20px; }
 .go-mono { font-family:var(--go-mono); font-variant-numeric:tabular-nums; }
 .go-app svg, .go-root svg { fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 
@@ -116,8 +117,10 @@
 .go-lost__p { color:var(--go-cy); font-weight:750; margin-top:9px; font-family:var(--go-mono); }
 
 /* Modal */
-.go-overlay { position:fixed; inset:0; background:rgba(4,6,10,.7); backdrop-filter:blur(4px); display:grid; place-items:center; z-index:100; padding:20px; }
-.go-modal { background:var(--go-panel); border:1px solid var(--go-border); border-radius:14px; width:100%; max-width:440px; box-shadow:var(--go-shadow); overflow:hidden; animation:go-pop .16s ease; }
+/* flex + margin:auto centers the dialog but, unlike place-items:center, never
+   clips a dialog taller than the viewport — the header stays scrollable to. */
+.go-overlay { position:fixed; inset:0; background:rgba(4,6,10,.7); backdrop-filter:blur(4px); display:flex; overflow:auto; z-index:100; padding:20px; }
+.go-modal { margin:auto; background:var(--go-panel); border:1px solid var(--go-border); border-radius:14px; width:100%; max-width:440px; box-shadow:var(--go-shadow); overflow:hidden; animation:go-pop .16s ease; }
 @keyframes go-pop { from { transform:scale(.97); opacity:0; } to { transform:scale(1); opacity:1; } }
 .go-modal__h { padding:18px 20px 0; display:flex; gap:12px; align-items:flex-start; }
 .go-modal__ico { width:40px; height:40px; border-radius:10px; flex-shrink:0; display:grid; place-items:center; }

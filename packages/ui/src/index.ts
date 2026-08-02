@@ -16,3 +16,5 @@ export { LostModePreview } from "./components/LostModePreview";
 export { Rail } from "./components/Rail";
 export type { RailItem } from "./components/Rail";
 export { Topbar, LiveIndicator, LangSwitch, ThemeButton } from "./components/Topbar";
+export { ThemeProvider } from "./components/ThemeProvider";
+export type { ThemeProviderProps } from "./components/ThemeProvider";

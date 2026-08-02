@@ -1,4 +1,21 @@
 {
+  "pkg": "@golden-one/ui",
+  "globalName": "GoldenOneUI",
   "projectId": "784fc543-ea80-4250-a4f6-0403267fa828",
-  "note": "Claude Design project holding hand-authored app design concepts (not a synced component library)."
+  "shape": "package",
+  "buildCmd": "npm run build",
+  "cssEntry": "dist/style.css",
+  "docsDir": "docs",
+  "overrides": {
+    "Modal": {
+      "cardMode": "column"
+    }
+  },
+  "provider": {
+    "component": "ThemeProvider",
+    "props": {
+      "theme": "dark",
+      "padded": true
+    }
+  }
 }
