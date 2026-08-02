@@ -21,7 +21,7 @@ export function ThemeProvider({ theme = "dark", padded = false, className = "", 
     document.documentElement.dataset.theme = theme;
   }, [theme]);
   return (
-    <div className={`go-app${padded ? " go-app--padded" : ""} ${className}`} style={style}>
+    <div data-theme={theme} className={`go-app${padded ? " go-app--padded" : ""} ${className}`} style={style}>
       {children}
     </div>
   );

@@ -18,9 +18,24 @@ const paths: Record<string, string> = {
 
 export type IconName = keyof typeof paths;
 
+/**
+ * An icon from the system's set. Sized by its context inside `Button`, `Badge`
+ * and the shell (CSS wins over these presentation attributes); standing alone it
+ * falls back to `1em` instead of the SVG default of 300×150.
+ */
 export function Icon({ name, ...props }: { name: IconName } & SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <svg
+      viewBox="0 0 24 24"
+      width="1em"
+      height="1em"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
       {paths[name].split("M").filter(Boolean).map((seg, i) => (
         <path key={i} d={"M" + seg} />
       ))}

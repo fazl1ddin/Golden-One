@@ -66,12 +66,15 @@ export function Field({ label, value }: { label: ReactNode; value: ReactNode }) 
 export function Label({ children }: { children: ReactNode }) {
   return <label className="go-label">{children}</label>;
 }
-export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
-  return <input className={`go-input ${props.className ?? ""}`} {...props} />;
+/* className is destructured out before the spread — spreading it back over the
+   base class would drop `go-input`/`go-select`/`go-textarea` and leave the
+   control rendering as an unstyled native box. */
+export function Input({ className = "", ...rest }: InputHTMLAttributes<HTMLInputElement>) {
+  return <input className={`go-input ${className}`} {...rest} />;
 }
-export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
-  return <select className="go-select" {...props} />;
+export function Select({ className = "", ...rest }: SelectHTMLAttributes<HTMLSelectElement>) {
+  return <select className={`go-select ${className}`} {...rest} />;
 }
-export function Textarea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return <textarea className="go-textarea" {...props} />;
+export function Textarea({ className = "", ...rest }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return <textarea className={`go-textarea ${className}`} {...rest} />;
 }

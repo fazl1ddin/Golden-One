@@ -13,7 +13,10 @@
   --go-mono:'SF Mono',ui-monospace,Menlo,Consolas,monospace;
   --go-font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
 }
-:root[data-theme="light"] {
+/* Also scoped to .go-app so a nested <ThemeProvider theme="light"> produces a
+   real light surface. Without the scoped selector only the outermost provider
+   could switch themes, because the tokens lived on :root alone. */
+:root[data-theme="light"], .go-app[data-theme="light"] {
   --go-bg:#eef1f5; --go-panel:#fff; --go-panel-2:#f5f7fa; --go-panel-3:#eaeef3;
   --go-border:#dfe4ec; --go-border-2:#cfd6e1;
   --go-text:#141a24; --go-muted:#586274; --go-faint:#8b95a6;
@@ -134,7 +137,7 @@
 
 /* Rail */
 .go-rail { background:#0e1219; border-right:1px solid var(--go-border); display:flex; flex-direction:column; align-items:center; padding:16px 0; gap:4px; }
-:root[data-theme="light"] .go-rail { background:#f6f8fb; }
+:root[data-theme="light"] .go-rail, .go-app[data-theme="light"] .go-rail { background:#f6f8fb; }
 .go-rail__mk { width:38px; height:38px; border-radius:11px; background:linear-gradient(135deg,var(--go-cy),var(--go-cy-dim));
   display:grid; place-items:center; color:#04211e; font-weight:800; font-size:15px; margin-bottom:16px; flex-shrink:0; }
 .go-rail__i { width:58px; padding:9px 0; border-radius:11px; display:flex; flex-direction:column; align-items:center; gap:5px;
@@ -151,7 +154,11 @@
 .go-top__c { font-size:11.5px; color:var(--go-faint); margin-top:1px; }
 .go-live { display:flex; align-items:center; gap:7px; font-size:11.5px; color:var(--go-muted); font-weight:600; }
 .go-live__b { width:7px; height:7px; border-radius:50%; background:var(--go-green); box-shadow:0 0 0 3px var(--go-green-soft); }
-.go-seg { display:flex; border:1px solid var(--go-border); border-radius:7px; overflow:hidden; }
+/* The reset belongs on .go-seg itself, not only on its children: ThemeButton
+   renders a <button class="go-seg">, which would otherwise keep the UA
+   buttonface/buttontext colours and paint white on the dark surface. */
+.go-seg { display:flex; border:1px solid var(--go-border); border-radius:7px; overflow:hidden;
+  background:none; color:var(--go-muted); font-family:inherit; }
 .go-seg button { padding:6px 10px; font-size:11.5px; font-weight:700; color:var(--go-faint); background:none; border:none; cursor:pointer; }
 .go-seg button.go-seg--on { background:var(--go-cy-soft); color:var(--go-cy); }
 
