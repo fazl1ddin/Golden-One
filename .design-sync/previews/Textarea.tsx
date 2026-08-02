@@ -63,20 +63,23 @@ export const WithLostModePreview = () => (
   </div>
 );
 
-/** Height scales with `rows`: a one-line SMS draft, the default, and a long legal notice. */
+/**
+ * Height is driven by `rows` above the 60px floor: the default SMS draft, a
+ * five-row lock message, and a ten-row contract notice that fits without scrolling.
+ */
 export const Sizes = () => (
   <div style={{ display: "flex", flexDirection: "column", gap: 14, maxWidth: 460 }}>
-    <Field label="SMS-предупреждение (rows=2)">
-      <Textarea rows={2} defaultValue="Golden One: по договору GO-2026-0001 просрочка 12 дней. Оплатите до 08.08 во избежание блокировки." />
+    <Field label="SMS-предупреждение (по умолчанию)">
+      <Textarea defaultValue="Golden One: по договору GO-2026-0001 просрочка 12 дней. Оплатите до 08.08." />
     </Field>
-    <Field label="Сообщение блокировки (по умолчанию)">
-      <Textarea defaultValue="Устройство заблокировано в связи с просрочкой платежа. Для разблокировки обратитесь в Golden One." />
+    <Field label="Сообщение блокировки (rows=5)">
+      <Textarea rows={5} defaultValue="Устройство заблокировано в связи с просрочкой платежа. Для разблокировки обратитесь в Golden One по телефону +998 71 200-00-00." />
     </Field>
-    <Field label="Уведомление по договору (rows=6)">
+    <Field label="Уведомление по договору (rows=10)">
       <Textarea
-        rows={6}
+        rows={10}
         defaultValue={
-          "Уважаемый клиент! По кредитному договору GO-2026-0184 от 14.02.2026 образовалась просроченная задолженность в размере 3 240 000 сўм.\n\nВ соответствии с п. 5.4 договора устройство переведено в режим ограниченного использования (Lost Mode). Экстренные вызовы остаются доступными.\n\nПосле поступления платежа устройство разблокируется в течение 15 минут."
+          "Уважаемый клиент! По договору GO-2026-0184 от 14.02.2026 образовалась просроченная задолженность 3 240 000 сўм.\n\nСогласно п. 5.4 устройство переведено в Lost Mode. Экстренные вызовы остаются доступными.\n\nПосле оплаты устройство разблокируется в течение 15 минут."
         }
       />
     </Field>
