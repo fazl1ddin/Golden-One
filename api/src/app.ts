@@ -4,7 +4,7 @@ import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";
 import rateLimit from "@fastify/rate-limit";
 import Fastify, { type FastifyInstance } from "fastify";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { ZodError } from "zod";
 import authPlugin from "./auth/plugin.js";
 import { config, isProduction, isTest } from "./config.js";
@@ -58,9 +58,21 @@ export async function buildApp(): Promise<FastifyInstance> {
     global: true,
     max: config.RATE_LIMIT_MAX,
     timeWindow: config.RATE_LIMIT_WINDOW,
-    // Prefer the authenticated user over the IP: one operator on a shared
-    // branch connection should not exhaust the budget for their colleagues.
-    keyGenerator: (req) => req.authUser?.id ?? req.ip,
+    // Key on the session rather than the IP, so one operator cannot exhaust the
+    // budget for colleagues sharing a branch connection.
+    //
+    // The limiter runs on onRequest, before authentication, so req.authUser is
+    // not populated yet — the bearer token is hashed instead of verified. That
+    // is the right trade here: hashing is cheap, and a forged or expired token
+    // still lands in its own bucket, so it cannot be used to drain someone
+    // else's. Unauthenticated calls (login) fall back to the IP.
+    keyGenerator: (req) => {
+      const header = req.headers.authorization;
+      if (header?.startsWith("Bearer ")) {
+        return `t:${createHash("sha256").update(header.slice(7)).digest("base64url")}`;
+      }
+      return `ip:${req.ip}`;
+    },
   });
 
   await app.register(authPlugin);
