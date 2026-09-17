@@ -24,11 +24,16 @@ export interface Device {
   imei: string;
   ios: string;
   supervised: boolean;
+  contractId: string;
   contract: string;
   amount: string; // preformatted for display
   monthly: string;
   paid: string;
   next: string;
+  /** Preformatted for display; "" when nothing is in arrears. */
+  arrears: string;
+  /** Raw so'm, so the payment form can default to it without reparsing. */
+  arrearsValue: number;
   daysOverdue: number;
   loan: LoanStatus;
   mdm: MdmStatus;
@@ -83,6 +88,7 @@ const PERMISSIONS = {
   "device:lock": ["COLLECTIONS", "ADMIN"],
   "device:command": ["COLLECTIONS", "ADMIN"],
   "device:release": ["ADMIN"],
+  "contract:payment": ["COLLECTIONS", "ADMIN"],
   "audit:read": ["COLLECTIONS", "ADMIN"],
   "user:manage": ["ADMIN"],
 } as const satisfies Record<string, readonly ApiRole[]>;

@@ -10,6 +10,7 @@ import { config } from "../config.js";
 import { requireUser } from "../auth/plugin.js";
 import {
   auditQuery,
+  paymentBody,
   changePasswordBody,
   createUserBody,
   deviceListQuery,
@@ -40,6 +41,8 @@ import {
   unlockDevice,
 } from "../services/device.service.js";
 import { enrollDevice } from "../services/enroll.service.js";
+import { listPayments, recordPayment, recomputeOverdue } from "../services/contract.service.js";
+import { runCollectionsPolicy } from "../services/collections.service.js";
 import { AppError } from "../services/errors.js";
 
 interface IdParams {
@@ -220,6 +223,28 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
     },
   });
 
+  /* ── Contracts and payments ─────────────────────────────────────────── */
+
+  app.get<{ Params: IdParams }>("/api/contracts/:id/payments", {
+    preHandler: app.requirePermission("contract:read"),
+    handler: async (req) => listPayments(req.params.id),
+  });
+
+  app.post<{ Params: IdParams }>("/api/contracts/:id/payments", {
+    preHandler: app.requirePermission("contract:payment"),
+    handler: async (req, reply) => {
+      const body = paymentBody.parse(req.body ?? {});
+      const result = await recordPayment(req.params.id, {
+        amount: body.amount,
+        method: body.method,
+        note: body.note,
+        actor: actorFrom(req),
+      });
+      reply.code(201);
+      return result;
+    },
+  });
+
   /* ── Audit ──────────────────────────────────────────────────────────── */
 
   app.get("/api/audit", {
@@ -232,6 +257,18 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
   app.post("/api/commands/reconcile", {
     preHandler: app.requirePermission("user:manage"),
     handler: async () => reconcilePendingCommands(),
+  });
+
+  app.post("/api/contracts/recompute", {
+    preHandler: app.requirePermission("user:manage"),
+    handler: async () => recomputeOverdue(),
+  });
+
+  /// Runs the overdue policy immediately. Whether this can lock anything
+  /// depends on AUTO_LOCK_ENABLED; the response says which it was.
+  app.post("/api/collections/run", {
+    preHandler: app.requirePermission("user:manage"),
+    handler: async () => runCollectionsPolicy(),
   });
 
   /* ── User administration ────────────────────────────────────────────── */

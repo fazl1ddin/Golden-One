@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Rail, Topbar, LiveIndicator, LangSwitch, ThemeButton, Icon, Button, type RailItem } from "@golden-one/ui";
 import { makeT, type Lang, type TKey } from "./i18n.js";
 import { api, ApiError, onUnauthorized, tokenStore } from "./api/index.js";
+import type { ApiPaymentMethod } from "./api/types.js";
 import { can, type Device, type AuditEntry, type Session, type Stats } from "./types.js";
 import { Dashboard } from "./screens/Dashboard.js";
 import { Devices } from "./screens/Devices.js";
@@ -28,6 +29,8 @@ export default function App() {
   const [route, setRoute] = useState<Route>("dashboard");
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [devices, setDevices] = useState<Device[]>([]);
+  const [devicesCursor, setDevicesCursor] = useState<string | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [audit, setAudit] = useState<AuditEntry[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [mdmProvider, setMdmProvider] = useState<string | null>(null);
@@ -113,6 +116,7 @@ export default function App() {
     try {
       const [devicePage, statsResult] = await Promise.all([api.devices(), api.stats()]);
       setDevices(devicePage.items);
+      setDevicesCursor(devicePage.nextCursor);
       setStats(statsResult);
 
       // Audit is restricted: a point-of-sale operator legitimately gets a 403
@@ -199,6 +203,21 @@ export default function App() {
 
   const current = devices.find((d) => d.id === currentId) ?? null;
 
+  /** Appends the next page; the cursor is the API's, not an offset. */
+  const loadMoreDevices = useCallback(async () => {
+    if (!devicesCursor || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const page = await api.devices({ cursor: devicesCursor });
+      setDevices((prev) => [...prev, ...page.items]);
+      setDevicesCursor(page.nextCursor);
+    } catch (err) {
+      notify(describe(err), "bad");
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [devicesCursor, loadingMore, notify, describe]);
+
   const openDevice = (id: string) => {
     setCurrentId(id);
     setRoute("detail");
@@ -229,6 +248,25 @@ export default function App() {
       if (kind === "locate") await api.locate(current.id);
       else await api.sound(current.id);
     }, kind === "locate" ? t("toastLocate") : t("toastSound"));
+  };
+
+  const doPayment = (input: { amount: number; method: ApiPaymentMethod; note?: string }) => {
+    if (!current) return;
+    const contractId = current.contractId;
+    void (async () => {
+      try {
+        const res = await api.recordPayment(contractId, input);
+        await refresh();
+        // Say which happened: a cleared contract releases the phone on its own,
+        // and the operator should not have to check whether it did.
+        notify(
+          res.autoUnlockedDeviceIds.length ? t("paymentAndUnlocked") : t("paymentSaved"),
+          "ok",
+        );
+      } catch (err) {
+        notify(describe(err), "bad");
+      }
+    })();
   };
 
   /* ── Shell ─────────────────────────────────────────────────────────────── */
@@ -330,6 +368,7 @@ export default function App() {
                     .devices(value ? { search: value } : {})
                     .then((page) => {
                       setDevices(page.items);
+                      setDevicesCursor(page.nextCursor);
                       setRoute("devices");
                     })
                     .catch((err) => notify(describe(err), "bad"));
@@ -382,7 +421,16 @@ export default function App() {
               onViewAll={() => setRoute("devices")}
             />
           )}
-          {route === "devices" && <Devices t={t} devices={devices} onOpenDevice={openDevice} />}
+          {route === "devices" && (
+            <Devices
+              t={t}
+              devices={devices}
+              onOpenDevice={openDevice}
+              hasMore={Boolean(devicesCursor)}
+              loadingMore={loadingMore}
+              onLoadMore={() => void loadMoreDevices()}
+            />
+          )}
           {route === "detail" && current && (
             <DeviceDetail
               t={t}
@@ -393,6 +441,7 @@ export default function App() {
               onLock={doLock}
               onUnlock={doUnlock}
               onCommand={doCommand}
+              onPayment={doPayment}
             />
           )}
           {route === "enroll" && (

@@ -4,10 +4,12 @@ import { buildApp } from "./app.js";
 import { config } from "./config.js";
 import { prisma } from "./db.js";
 import { startReconciler } from "./workers/reconciler.js";
+import { startCollections } from "./workers/collections.js";
 
 async function main(): Promise<void> {
   const app = await buildApp();
   const reconciler = startReconciler(app.log);
+  const collections = startCollections(app.log);
 
   let shuttingDown = false;
   const shutdown = async (signal: string): Promise<void> => {
@@ -17,6 +19,7 @@ async function main(): Promise<void> {
 
     app.log.info(`Received ${signal}, shutting down`);
     reconciler.stop();
+    collections.stop();
     try {
       // close() stops accepting new connections and lets in-flight requests
       // finish — an MDM lock must not be abandoned halfway through.

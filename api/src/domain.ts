@@ -41,6 +41,8 @@ export const AUDIT_ACTIONS = [
   "RELEASE",
   "USER_CREATE",
   "USER_DISABLE",
+  "PAYMENT",
+  "WARNING",
 ] as const;
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
 
@@ -56,6 +58,8 @@ export const PERMISSIONS = {
   "device:unlock": ["COLLECTIONS", "ADMIN"],
   "device:command": ["COLLECTIONS", "ADMIN"],
   "device:release": ["ADMIN"],
+  "contract:read": ["POS_OPERATOR", "COLLECTIONS", "ADMIN"],
+  "contract:payment": ["COLLECTIONS", "ADMIN"],
   "audit:read": ["COLLECTIONS", "ADMIN"],
   "user:manage": ["ADMIN"],
 } as const satisfies Record<string, readonly Role[]>;

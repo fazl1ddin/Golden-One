@@ -38,12 +38,31 @@ const schema = z
     MDM_PROVIDER: z.enum(["mock", "mosyle"]).default("mock"),
     MOSYLE_API_URL: z.string().url().optional(),
     MOSYLE_ACCESS_TOKEN: z.string().min(1).optional(),
+    /// Mosyle needs an administrator login as well as the API key: since
+    /// February 2024 the Authorization header must carry a JWT, which is
+    /// obtained by logging in — the API key alone is not accepted.
+    MOSYLE_EMAIL: z.string().email().optional(),
+    MOSYLE_PASSWORD: z.string().min(1).optional(),
 
     /// How often the reconciler asks the MDM what actually happened to
     /// commands that are still pending. 0 disables the background loop.
     RECONCILE_INTERVAL_MS: z.coerce.number().int().min(0).default(60_000),
     /// Give up on a command that the device never picked up.
     COMMAND_MAX_ATTEMPTS: z.coerce.number().int().min(1).default(5),
+
+    /// How often arrears are recomputed and the overdue policy is applied.
+    /// 0 disables the loop entirely.
+    COLLECTIONS_INTERVAL_MS: z.coerce.number().int().min(0).default(3_600_000),
+    /// Warn the customer once they are this many days overdue.
+    WARN_AFTER_DAYS: z.coerce.number().int().min(1).default(7),
+    /// Do not warn the same customer again within this many days.
+    WARN_COOLDOWN_DAYS: z.coerce.number().int().min(1).default(3),
+    /// Lock automatically once this many days overdue — only if enabled below.
+    AUTO_LOCK_AFTER_DAYS: z.coerce.number().int().min(1).default(14),
+    /// OFF by default. Locking a customer's phone without an operator deciding
+    /// to is a policy choice with legal weight, so it must be switched on
+    /// deliberately rather than inherited from a default.
+    AUTO_LOCK_ENABLED: bool.default("false"),
 
     RATE_LIMIT_MAX: z.coerce.number().int().min(1).default(300),
     RATE_LIMIT_WINDOW: z.string().default("1 minute"),
@@ -68,6 +87,15 @@ const schema = z
           code: z.ZodIssueCode.custom,
           path: ["MOSYLE_ACCESS_TOKEN"],
           message: "MOSYLE_ACCESS_TOKEN is required when MDM_PROVIDER=mosyle",
+        });
+      }
+      if (!cfg.MOSYLE_EMAIL || !cfg.MOSYLE_PASSWORD) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["MOSYLE_EMAIL"],
+          message:
+            "MOSYLE_EMAIL and MOSYLE_PASSWORD are required when MDM_PROVIDER=mosyle " +
+            "(Mosyle issues the Authorization JWT from an administrator login)",
         });
       }
     }

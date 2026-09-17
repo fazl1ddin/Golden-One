@@ -20,7 +20,9 @@ export type ApiAuditAction =
   | "ENROLL"
   | "RELEASE"
   | "USER_CREATE"
-  | "USER_DISABLE";
+  | "USER_DISABLE"
+  | "PAYMENT"
+  | "WARNING";
 
 export interface ApiUser {
   id: string;
@@ -45,6 +47,8 @@ export interface ApiContract {
   nextPaymentDate: string | null;
   daysOverdue: number;
   status: ApiContractStatus;
+  /** What clears the arrears today, in whole so'm. 0 when the contract is current. */
+  arrears: number;
 }
 
 export interface ApiDevice {
@@ -88,6 +92,25 @@ export interface ApiAuditEntry {
 export interface ApiDeviceDetail extends ApiDevice {
   commands: ApiCommand[];
   audit: ApiAuditEntry[];
+}
+
+export type ApiPaymentMethod = "CASH" | "CARD" | "TRANSFER" | "OTHER";
+
+export interface ApiPayment {
+  id: string;
+  contractId: string;
+  amount: number;
+  method: ApiPaymentMethod;
+  note: string | null;
+  createdAt: string;
+  recordedBy: { id: string; name: string } | null;
+}
+
+export interface ApiPaymentResponse {
+  payment: ApiPayment;
+  contract: ApiContract;
+  /** Devices released automatically because the arrears were cleared. */
+  autoUnlockedDeviceIds: string[];
 }
 
 export interface ApiStats {

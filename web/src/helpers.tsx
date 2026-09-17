@@ -60,6 +60,8 @@ const ACTION_KEY = {
   RELEASE: "acRELEASE",
   USER_CREATE: "acUSER_CREATE",
   USER_DISABLE: "acUSER_DISABLE",
+  PAYMENT: "acPAYMENT",
+  WARNING: "acWARNING",
 } as const satisfies Record<ApiAuditAction, string>;
 
 export function actionLabel(action: ApiAuditAction, t: T): string {
@@ -76,6 +78,8 @@ const ACTION_STYLE: Record<ApiAuditAction, { color: string; icon: string }> = {
   RELEASE: { color: "--go-green", icon: "check" },
   USER_CREATE: { color: "--go-steel", icon: "settings" },
   USER_DISABLE: { color: "--go-red", icon: "settings" },
+  PAYMENT: { color: "--go-green", icon: "check" },
+  WARNING: { color: "--go-amber", icon: "warn" },
 };
 
 export function actionStyle(action: ApiAuditAction) {

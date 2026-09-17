@@ -7,6 +7,8 @@ import type { ApiRole } from "../api/types.js";
 import type { Device, AuditEntry } from "../types.js";
 import { can } from "../types.js";
 import type { makeT } from "../i18n.js";
+import type { ApiPaymentMethod } from "../api/types.js";
+import { PaymentModal } from "./PaymentModal.js";
 import { loanBadge, mdmBadge, lockBadge, fmtSince, actionLabel, actionStyle, isPending } from "../helpers.js";
 
 type T = ReturnType<typeof makeT>;
@@ -14,7 +16,7 @@ const DEFAULT_MSG =
   "Устройство заблокировано в связи с просрочкой платежа. Для разблокировки обратитесь в Golden One.";
 const DEFAULT_PHONE = "+998 71 200-00-00";
 
-export function DeviceDetail({ t, device, audit, role, onBack, onLock, onUnlock, onCommand }: {
+export function DeviceDetail({ t, device, audit, role, onBack, onLock, onUnlock, onCommand, onPayment }: {
   t: T;
   device: Device;
   audit: AuditEntry[];
@@ -23,10 +25,12 @@ export function DeviceDetail({ t, device, audit, role, onBack, onLock, onUnlock,
   onLock: (input: { message: string; phone: string; reason?: string }) => void;
   onUnlock: (reason?: string) => void;
   onCommand: (kind: "locate" | "sound") => void;
+  onPayment: (input: { amount: number; method: ApiPaymentMethod; note?: string }) => void;
 }) {
-  const [modal, setModal] = useState<"lock" | "unlock" | null>(null);
+  const [modal, setModal] = useState<"lock" | "unlock" | "payment" | null>(null);
   const mayLock = can(role, "device:lock");
   const mayCommand = can(role, "device:command");
+  const mayTakePayment = can(role, "contract:payment");
   const pending = isPending(device.lock);
 
   const info: [string, React.ReactNode][] = [
@@ -44,6 +48,11 @@ export function DeviceDetail({ t, device, audit, role, onBack, onLock, onUnlock,
     ["fMonthly", <span><span className="go-mono">{device.monthly}</span> сум</span>],
     ["fPaid", <span><span className="go-mono">{device.paid}</span> сум</span>],
     ["fNext", <span className="go-mono">{device.next}</span>],
+    // Only shown when there is something to clear: a zero here would read as a
+    // debt rather than as "nothing outstanding".
+    ...(device.arrearsValue > 0
+      ? ([["fArrears", <span className="go-over"><span className="go-mono">{device.arrears}</span> сум</span>]] as [string, React.ReactNode][])
+      : []),
     ["fDays", device.daysOverdue > 0
       ? <span className={`go-over go-mono${device.daysOverdue >= 20 ? " go-over--hi" : ""}`}>
           {device.daysOverdue} {t("daysOverdue")}
@@ -101,10 +110,15 @@ export function DeviceDetail({ t, device, audit, role, onBack, onLock, onUnlock,
                 </div>
               )}
 
-              {!mayLock && !mayCommand ? (
+              {!mayLock && !mayCommand && !mayTakePayment ? (
                 <div className="go-cm">{t("noAccess")}</div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {mayTakePayment && device.loan !== "paid" && (
+                    <Button variant="ghost" block onClick={() => setModal("payment")}>
+                      <Icon name="check" />{t("recordPayment")}
+                    </Button>
+                  )}
                   {mayLock && (
                     device.lock === "locked" || device.lock === "unlockPending" ? (
                       <Button variant="cy" block disabled={pending} onClick={() => setModal("unlock")}>
@@ -163,6 +177,10 @@ export function DeviceDetail({ t, device, audit, role, onBack, onLock, onUnlock,
       {modal === "lock" && (
         <LockModal t={t} device={device} onClose={() => setModal(null)}
           onConfirm={(o) => { setModal(null); onLock(o); }} />
+      )}
+      {modal === "payment" && (
+        <PaymentModal t={t} device={device} onClose={() => setModal(null)}
+          onConfirm={(input) => { setModal(null); onPayment(input); }} />
       )}
       {modal === "unlock" && (
         <UnlockModal t={t} device={device} onClose={() => setModal(null)}

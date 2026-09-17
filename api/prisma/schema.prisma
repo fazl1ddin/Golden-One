@@ -70,6 +70,17 @@ enum AuditAction {
   RELEASE
   USER_CREATE
   USER_DISABLE
+  /// A payment was recorded against a contract.
+  PAYMENT
+  /// The customer was warned that their device is about to be locked.
+  WARNING
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  TRANSFER
+  OTHER
 }
 
 model User {
@@ -90,6 +101,7 @@ model User {
 
   auditLogs AuditLog[]
   commands  MdmCommand[]
+  payments  Payment[]
 }
 
 model Customer {
@@ -119,14 +131,39 @@ model LoanContract {
   daysOverdue     Int            @default(0)
   status          ContractStatus @default(ACTIVE)
 
-  customer Customer @relation(fields: [customerId], references: [id])
+  /// When the customer was last warned about an impending lock — used to avoid
+  /// warning the same person every time the scheduler runs.
+  lastWarningAt DateTime?
+
+  customer Customer  @relation(fields: [customerId], references: [id])
   devices  Device[]
+  payments Payment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([status])
   @@index([customerId])
+  @@index([nextPaymentDate])
+}
+
+/// Money actually received against a contract. Recording one is what moves a
+/// loan out of arrears — and therefore what ends a lock.
+model Payment {
+  id         String        @id @default(cuid())
+  contractId String
+  amount     Int
+  method     PaymentMethod @default(CASH)
+  note       String?
+
+  recordedById String?
+  recordedBy   User?   @relation(fields: [recordedById], references: [id])
+
+  contract LoanContract @relation(fields: [contractId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([contractId, createdAt])
 }
 
 model Device {

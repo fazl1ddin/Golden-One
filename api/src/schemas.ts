@@ -101,6 +101,13 @@ export const createUserBody = z.object({
   role,
 });
 
+export const paymentBody = z.object({
+  /// Whole so'm: money is never stored as a float here.
+  amount: z.number().int().positive().max(10_000_000_000),
+  method: z.enum(["CASH", "CARD", "TRANSFER", "OTHER"]).optional(),
+  note: z.string().trim().min(1).max(500).optional(),
+});
+
 export const setUserActiveBody = z.object({ active: z.boolean() });
 
 export const changePasswordBody = z.object({
@@ -116,3 +123,4 @@ export type EnrollBody = z.infer<typeof enrollBody>;
 export type AuditQuery = z.infer<typeof auditQuery>;
 export type LoginBody = z.infer<typeof loginBody>;
 export type CreateUserBody = z.infer<typeof createUserBody>;
+export type PaymentBody = z.infer<typeof paymentBody>;

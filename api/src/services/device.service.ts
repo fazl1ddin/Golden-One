@@ -11,9 +11,11 @@ import { config } from "../config.js";
 import { prisma } from "../db.js";
 import { getDeviceManager, MdmError, type CommandResult } from "../mdm/index.js";
 import { recordAudit } from "./audit.service.js";
+import { arrearsDue } from "./schedule.js";
 import { AppError, NotFoundError } from "./errors.js";
 
 export interface ActorContext {
+  /** Empty for automated actions: those are attributed to no user row. */
   id: string;
   name: string;
   ip?: string;
@@ -32,6 +34,18 @@ const deviceInclude = {
   customer: true,
   contract: true,
 } satisfies Prisma.DeviceInclude;
+
+/**
+ * Attaches the figure an operator actually needs at the counter: what clears
+ * the arrears. It is derived rather than stored so it cannot go stale between
+ * the nightly recompute and the moment someone is standing there paying.
+ */
+export function withArrears<T extends { contract: Parameters<typeof arrearsDue>[0] }>(device: T) {
+  return {
+    ...device,
+    contract: { ...device.contract, arrears: arrearsDue(device.contract) },
+  };
+}
 
 export async function listDevices(query: DeviceListQuery = {}) {
   const limit = Math.min(query.limit ?? 50, 200);
@@ -64,7 +78,7 @@ export async function listDevices(query: DeviceListQuery = {}) {
   const hasMore = items.length > limit;
   const page = hasMore ? items.slice(0, limit) : items;
   return {
-    items: page,
+    items: page.map(withArrears),
     nextCursor: hasMore ? (page[page.length - 1]?.id ?? null) : null,
   };
 }
@@ -85,7 +99,7 @@ export async function getDeviceDetail(id: string) {
     take: 20,
   });
 
-  return { ...device, audit };
+  return { ...withArrears(device), audit };
 }
 
 async function requireDevice(id: string) {
@@ -160,7 +174,7 @@ async function runCommand(params: RunCommandParams) {
       provider: mdm.provider,
       ...(params.payload === undefined ? {} : { payload: params.payload }),
       idempotencyKey: params.idempotencyKey ?? null,
-      requestedById: params.actor.id,
+      requestedById: params.actor.id || null,
       attempts: 1,
       lastTriedAt: new Date(),
     },
@@ -177,7 +191,7 @@ async function runCommand(params: RunCommandParams) {
   // The audit entry is written before the outcome is known: the operator's
   // *decision* is the auditable event, whether or not the phone was reachable.
   await recordAudit({
-    actorId: params.actor.id,
+    actorId: params.actor.id || null,
     actorName: params.actor.name,
     action: params.type === "REMOVE_MGMT" ? "RELEASE" : params.type,
     deviceId: device.id,
@@ -322,7 +336,7 @@ export async function locateDevice(id: string, params: SimpleActionParams) {
       provider: mdm.provider,
       payload: point as unknown as Prisma.InputJsonValue,
       error: point.ok ? null : (point.message ?? "Location unavailable"),
-      requestedById: params.actor.id,
+      requestedById: params.actor.id || null,
       attempts: 1,
       lastTriedAt: new Date(),
       settledAt: new Date(),
@@ -334,7 +348,7 @@ export async function locateDevice(id: string, params: SimpleActionParams) {
   }
 
   await recordAudit({
-    actorId: params.actor.id,
+    actorId: params.actor.id || null,
     actorName: params.actor.name,
     action: "LOCATE",
     deviceId: id,

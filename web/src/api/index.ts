@@ -4,6 +4,9 @@ import { query, request, tokenStore } from "./client.js";
 import { mapAudit, mapDevice, mapDeviceDetail, mapStats } from "./map.js";
 import type {
   ApiAuditEntry,
+  ApiPayment,
+  ApiPaymentMethod,
+  ApiPaymentResponse,
   ApiCommandResponse,
   ApiDevice,
   ApiDeviceDetail,
@@ -131,6 +134,22 @@ export const api = {
   }): Promise<Device> {
     const dto = await request<ApiDeviceDetail>("/api/enroll", { method: "POST", body: input });
     return mapDevice(dto);
+  },
+
+  /* ── Payments ────────────────────────────────────────────────────────── */
+
+  payments(contractId: string): Promise<ApiPayment[]> {
+    return request<ApiPayment[]>(`/api/contracts/${contractId}/payments`);
+  },
+
+  recordPayment(
+    contractId: string,
+    input: { amount: number; method?: ApiPaymentMethod; note?: string },
+  ): Promise<ApiPaymentResponse> {
+    return request<ApiPaymentResponse>(`/api/contracts/${contractId}/payments`, {
+      method: "POST",
+      body: input,
+    });
   },
 
   /* ── Audit ───────────────────────────────────────────────────────────── */

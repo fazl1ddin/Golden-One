@@ -6,7 +6,7 @@ import { prisma } from "../db.js";
 import { getDeviceManager } from "../mdm/index.js";
 import { recordAudit } from "./audit.service.js";
 import { AppError } from "./errors.js";
-import type { ActorContext } from "./device.service.js";
+import { withArrears, type ActorContext } from "./device.service.js";
 
 export interface EnrollInput {
   actor: ActorContext;
@@ -92,5 +92,7 @@ export async function enrollDevice(input: EnrollInput) {
     userAgent: input.actor.userAgent,
   });
 
-  return created;
+  // Same shape as the list and detail endpoints, so the dashboard can render a
+  // freshly enrolled device without a special case.
+  return withArrears(created);
 }
